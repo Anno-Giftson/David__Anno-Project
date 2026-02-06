@@ -78,8 +78,8 @@ document.addEventListener('keydown', (event) => {
     case 'Space': moveUp = true; break;
     case 'ShiftLeft': moveDown = true; break;
 
-    case 'ArrowUp': lookUp = true; break;
-    case 'ArrowDown': lookDown = true; break;
+    case 'ArrowDown': lookUp = true; break;
+    case 'ArrowUp': lookDown = true; break;
   }
 });
 
@@ -96,8 +96,8 @@ document.addEventListener('keyup', (event) => {
     case 'Space': moveUp = false; break;
     case 'ShiftLeft': moveDown = false; break;
 
-    case 'ArrowUp': lookUp = false; break;
-    case 'ArrowDown': lookDown = false; break;
+    case 'ArrowDown': lookUp = false; break;
+    case 'ArrowUp': lookDown = false; break;
   }
 });
 
@@ -110,8 +110,8 @@ function animate() {
   if (rotateRight) yawObject.rotation.y -= turnSpeed;
 
   // Look up/down (pitch)
-  if (lookUp) pitchObject.rotation.x -= lookSpeed;
-  if (lookDown) pitchObject.rotation.x += lookSpeed;
+  if (lookUp) pitchObject.rotation.x += lookSpeed;
+  if (lookDown) pitchObject.rotation.x -= lookSpeed;
 
   // Clamp pitch to prevent flipping
   pitchObject.rotation.x = Math.max(
