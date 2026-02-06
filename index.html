@@ -13,40 +13,41 @@
       display: block;
     }
 
-    /* === Crosshair === */
-    #crosshair {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      width: 20px;
-      height: 20px;
-      margin-left: -10px;
-      margin-top: -10px;
-      pointer-events: none; /* clicks go through */
-    }
+/* === Minecraft-style Crosshair === */
+#crosshair {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 32px;
+  height: 32px;
+  margin-left: -16px;
+  margin-top: -16px;
+  pointer-events: none;
+}
 
-    #crosshair::before,
-    #crosshair::after {
-      content: '';
-      position: absolute;
-      background: #ddd;
-    }
+#crosshair::before,
+#crosshair::after {
+  content: '';
+  position: absolute;
+  background: #f0f0f0;
+}
 
-    /* vertical line */
-    #crosshair::before {
-      left: 9px;
-      top: 0;
-      width: 2px;
-      height: 20px;
-    }
+/* vertical line */
+#crosshair::before {
+  left: 14px;
+  top: 0;
+  width: 4px;
+  height: 32px;
+}
 
-    /* horizontal line */
-    #crosshair::after {
-      top: 9px;
-      left: 0;
-      width: 20px;
-      height: 2px;
-    }
+/* horizontal line */
+#crosshair::after {
+  top: 14px;
+  left: 0;
+  width: 32px;
+  height: 4px;
+}
+
   </style>
 </head>
 <body>
