@@ -21,15 +21,13 @@ light.position.set(5, 10, 5);
 scene.add(light);
 scene.add(new THREE.AmbientLight(0xffffff, 0.4));
 
-// === FPS Camera Rig (prevents flipping & dizziness) ===
-const yawObject = new THREE.Object3D();   // left/right rotation
-const pitchObject = new THREE.Object3D(); // up/down rotation
+// === Pointer Lock Mouse Look ===
+const controls = new THREE.PointerLockControls(camera, document.body);
+scene.add(controls.getObject());
 
-yawObject.add(pitchObject);
-pitchObject.add(camera);
-scene.add(yawObject);
+// start position
+controls.getObject().position.set(0, 2, 5);
 
-yawObject.position.set(0, 2, 5);
 
 // === Ground blocks ===
 const blockSize = 1;
@@ -45,18 +43,16 @@ for (let x = -worldSize / 2; x < worldSize / 2; x++) {
   }
 }
 
-// === Movement flags ===
-let moveForward = false;
-let moveBackward = false;
-let moveLeft = false;
-let moveRight = false;
-let moveUp = false;
-let moveDown = false;
+// Movement
+if (moveForward) controls.moveForward(speed);
+if (moveBackward) controls.moveForward(-speed);
+if (moveRight) controls.moveRight(speed);
+if (moveLeft) controls.moveRight(-speed);
 
-let rotateLeft = false;
-let rotateRight = false;
-let lookUp = false;
-let lookDown = false;
+// Vertical
+if (moveUp) controls.getObject().position.y += verticalSpeed;
+if (moveDown) controls.getObject().position.y -= verticalSpeed;
+
 
 // === Speeds ===
 const speed = 0.1;
@@ -71,9 +67,6 @@ document.addEventListener('keydown', (event) => {
     case 'KeyS': moveBackward = true; break;
     case 'KeyA': moveLeft = true; break;
     case 'KeyD': moveRight = true; break;
-
-    case 'KeyQ': rotateLeft = true; break;
-    case 'KeyE': rotateRight = true; break;
 
     case 'Space': moveUp = true; break;
     case 'ShiftLeft': moveDown = true; break;
@@ -90,9 +83,6 @@ document.addEventListener('keyup', (event) => {
     case 'KeyA': moveLeft = false; break;
     case 'KeyD': moveRight = false; break;
 
-    case 'KeyQ': rotateLeft = false; break;
-    case 'KeyE': rotateRight = false; break;
-
     case 'Space': moveUp = false; break;
     case 'ShiftLeft': moveDown = false; break;
 
@@ -105,38 +95,6 @@ document.addEventListener('keyup', (event) => {
 function animate() {
   requestAnimationFrame(animate);
 
-  // Rotate player (yaw)
-  if (rotateLeft) yawObject.rotation.y += turnSpeed;
-  if (rotateRight) yawObject.rotation.y -= turnSpeed;
-
-  // Look up/down (NOT inverted)
-  if (lookUp) pitchObject.rotation.x -= lookSpeed;   // UP arrow → look UP
-  if (lookDown) pitchObject.rotation.x += lookSpeed; // DOWN arrow → look DOWN
-
-
-  // Clamp pitch to prevent flipping
-  pitchObject.rotation.x = Math.max(
-    -Math.PI / 2,
-    Math.min(Math.PI / 2, pitchObject.rotation.x)
-  );
-
-  // Direction vectors
-  const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(yawObject.quaternion);
-  const right = new THREE.Vector3(1, 0, 0).applyQuaternion(yawObject.quaternion);
-
-  // Movement
-  if (moveForward) yawObject.position.add(forward.clone().multiplyScalar(speed));
-  if (moveBackward) yawObject.position.add(forward.clone().multiplyScalar(-speed));
-  if (moveLeft) yawObject.position.add(right.clone().multiplyScalar(-speed));
-  if (moveRight) yawObject.position.add(right.clone().multiplyScalar(speed));
-
-  // Vertical movement
-  if (moveUp) yawObject.position.y += verticalSpeed;
-  if (moveDown) yawObject.position.y -= verticalSpeed;
-
-  renderer.render(scene, camera);
-}
-
 animate();
 
 // === Window resize ===
@@ -144,4 +102,8 @@ window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+document.body.addEventListener('click', () => {
+  controls.lock();
 });
