@@ -36,8 +36,10 @@ scene.add(controls.getObject());
 
 controls.getObject().position.set(0, 2, 5);
 
-// click to lock mouse
-document.body.addEventListener("click", () => controls.lock());
+// Click to lock
+document.body.addEventListener("click", () => {
+  controls.lock();
+});
 
 
 // ==========================
@@ -58,7 +60,7 @@ for (let x = -worldSize / 2; x < worldSize / 2; x++) {
 
 
 // ==========================
-// Movement flags
+// Movement
 // ==========================
 let moveForward = false;
 let moveBackward = false;
@@ -70,12 +72,8 @@ let moveDown = false;
 const speed = 0.1;
 const verticalSpeed = 0.1;
 
-
-// ==========================
-// Keyboard
-// ==========================
 document.addEventListener("keydown", (e) => {
-  switch (e.code) {
+  switch(e.code){
     case "KeyW": moveForward = true; break;
     case "KeyS": moveBackward = true; break;
     case "KeyA": moveLeft = true; break;
@@ -86,7 +84,7 @@ document.addEventListener("keydown", (e) => {
 });
 
 document.addEventListener("keyup", (e) => {
-  switch (e.code) {
+  switch(e.code){
     case "KeyW": moveForward = false; break;
     case "KeyS": moveBackward = false; break;
     case "KeyA": moveLeft = false; break;
@@ -98,18 +96,18 @@ document.addEventListener("keyup", (e) => {
 
 
 // ==========================
-// Game loop
+// Animation loop
 // ==========================
-function animate() {
+function animate(){
   requestAnimationFrame(animate);
 
-  if (moveForward) controls.moveForward(speed);
-  if (moveBackward) controls.moveForward(-speed);
-  if (moveLeft) controls.moveRight(-speed);
-  if (moveRight) controls.moveRight(speed);
+  if(moveForward) controls.moveForward(speed);
+  if(moveBackward) controls.moveForward(-speed);
+  if(moveLeft) controls.moveRight(-speed);
+  if(moveRight) controls.moveRight(speed);
 
-  if (moveUp) controls.getObject().position.y += verticalSpeed;
-  if (moveDown) controls.getObject().position.y -= verticalSpeed;
+  if(moveUp) controls.getObject().position.y += verticalSpeed;
+  if(moveDown) controls.getObject().position.y -= verticalSpeed;
 
   renderer.render(scene, camera);
 }
@@ -125,4 +123,5 @@ window.addEventListener("resize", () => {
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
+
 
