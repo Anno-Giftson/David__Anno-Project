@@ -30,15 +30,17 @@ class PointerLockControlsCustom {
   constructor(camera, domElement){
     this.camera = camera;
     this.domElement = domElement || document.body;
+
     this.pitchObject = new THREE.Object3D();
     this.pitchObject.add(camera);
+
     this.yawObject = new THREE.Object3D();
     this.yawObject.position.y = 2;
     this.yawObject.add(this.pitchObject);
+
     this.isLocked = false;
 
     this.domElement.addEventListener('click', () => { this.lock(); });
-
     this.onMouseMove = this.onMouseMove.bind(this);
   }
 
@@ -64,16 +66,19 @@ class PointerLockControlsCustom {
     this.pitchObject.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, this.pitchObject.rotation.x));
   }
 
+  // ==========================
+  // Minecraft-style movement
+  // ==========================
   moveForward(distance){
+    // move along camera direction (including vertical)
     const vector = new THREE.Vector3(0,0,-1).applyQuaternion(this.yawObject.quaternion);
-    vector.y = 0;
     vector.normalize();
     this.yawObject.position.add(vector.multiplyScalar(distance));
   }
 
   moveRight(distance){
+    // move sideways relative to camera
     const vector = new THREE.Vector3(1,0,0).applyQuaternion(this.yawObject.quaternion);
-    vector.y = 0;
     vector.normalize();
     this.yawObject.position.add(vector.multiplyScalar(distance));
   }
@@ -130,11 +135,15 @@ document.addEventListener('keyup', e=>{
 function animate(){
   requestAnimationFrame(animate);
 
+  // Forward/backward along camera direction
   if(moveForward) controls.moveForward(speed);
   if(moveBackward) controls.moveForward(-speed);
+
+  // Sideways
   if(moveLeft) controls.moveRight(-speed);
   if(moveRight) controls.moveRight(speed);
 
+  // Vertical (Space / Shift)
   if(moveUp) controls.getObject().position.y += verticalSpeed;
   if(moveDown) controls.getObject().position.y -= verticalSpeed;
 
@@ -150,6 +159,3 @@ window.addEventListener('resize', ()=>{
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
-
-
-
