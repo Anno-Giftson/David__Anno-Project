@@ -70,16 +70,15 @@ class PointerLockControlsCustom {
   // Minecraft-style movement
   // ==========================
   moveForward(distance){
-    // Move along full camera direction (yaw + pitch)
+    // move along full camera direction (yaw + pitch)
     const direction = new THREE.Vector3(0,0,-1);
-    direction.applyQuaternion(this.pitchObject.quaternion); // include pitch
-    direction.applyQuaternion(this.yawObject.quaternion);   // include yaw
+    direction.applyQuaternion(this.pitchObject.quaternion); // pitch
+    direction.applyQuaternion(this.yawObject.quaternion);   // yaw
     direction.normalize();
     this.yawObject.position.add(direction.multiplyScalar(distance));
-}
+  }
 
   moveRight(distance){
-    // move sideways relative to camera
     const vector = new THREE.Vector3(1,0,0).applyQuaternion(this.yawObject.quaternion);
     vector.normalize();
     this.yawObject.position.add(vector.multiplyScalar(distance));
@@ -137,15 +136,11 @@ document.addEventListener('keyup', e=>{
 function animate(){
   requestAnimationFrame(animate);
 
-  // Forward/backward along camera direction
   if(moveForward) controls.moveForward(speed);
   if(moveBackward) controls.moveForward(-speed);
-
-  // Sideways
   if(moveLeft) controls.moveRight(-speed);
   if(moveRight) controls.moveRight(speed);
 
-  // Vertical (Space / Shift)
   if(moveUp) controls.getObject().position.y += verticalSpeed;
   if(moveDown) controls.getObject().position.y -= verticalSpeed;
 
@@ -161,3 +156,4 @@ window.addEventListener('resize', ()=>{
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
+
