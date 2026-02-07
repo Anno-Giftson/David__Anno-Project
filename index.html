@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Biblecraft</title>
+
   <style>
     body {
       margin: 0;
@@ -13,53 +14,51 @@
       display: block;
     }
 
-/* === Minecraft-style Crosshair === */
-#crosshair {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  width: 32px;
-  height: 32px;
-  margin-left: -16px;
-  margin-top: -16px;
-  pointer-events: none;
-}
+    /* Crosshair */
+    #crosshair {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 32px;
+      height: 32px;
+      margin-left: -16px;
+      margin-top: -16px;
+      pointer-events: none;
+    }
 
-#crosshair::before,
-#crosshair::after {
-  content: '';
-  position: absolute;
-  background: #f0f0f0;
-}
+    #crosshair::before,
+    #crosshair::after {
+      content: '';
+      position: absolute;
+      background: #f0f0f0;
+    }
 
-/* vertical line */
-#crosshair::before {
-  left: 14px;
-  top: 0;
-  width: 4px;
-  height: 32px;
-}
+    #crosshair::before {
+      left: 14px;
+      top: 0;
+      width: 4px;
+      height: 32px;
+    }
 
-/* horizontal line */
-#crosshair::after {
-  top: 14px;
-  left: 0;
-  width: 32px;
-  height: 4px;
-}
-
+    #crosshair::after {
+      top: 14px;
+      left: 0;
+      width: 32px;
+      height: 4px;
+    }
   </style>
 </head>
-<body>
 
-  <!-- Crosshair -->
+<body>
   <div id="crosshair"></div>
 
+  <!-- ORDER MATTERS -->
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/PointerLockControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/PointerLockControls.min.js"></script>
   <script src="main.js"></script>
 </body>
 </html>
+
 
 
 
