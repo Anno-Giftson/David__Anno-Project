@@ -4,14 +4,18 @@
 <meta charset="UTF-8">
 <title>Biblecraft</title>
 <style>
-  html, body { margin:0; padding:0; overflow:hidden; height:100%; }
-  #game-container { position: relative; width:100%; height:100%; }
+  body {
+    margin: 0;
+    overflow: hidden;
+  }
 
-  canvas { display:block; }
+  canvas {
+    display: block;
+  }
 
-  /* Crosshair on top of canvas */
+  /* Crosshair fixed above canvas */
   #crosshair {
-    position: absolute;
+    position: fixed;       /* stays in center */
     top: 50%;
     left: 50%;
     width: 32px;
@@ -19,7 +23,7 @@
     margin-left: -16px;
     margin-top: -16px;
     pointer-events: none;
-    z-index: 9999; /* stays above canvas */
+    z-index: 9999;         /* always on top */
   }
 
   #crosshair::before,
@@ -47,15 +51,18 @@
 </style>
 </head>
 <body>
-  <div id="game-container">
-    <div id="crosshair"></div>
-  </div>
+  <!-- Crosshair -->
+  <div id="crosshair"></div>
 
-  <!-- Three.js library -->
-  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+  <!-- Three.js -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 
-  <!-- Your separate main.js -->
+  <!-- PointerLockControls (optional if using) -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/PointerLockControls.js"></script>
+
+  <!-- Your main.js -->
   <script src="main.js"></script>
 </body>
 </html>
+
 
