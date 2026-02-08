@@ -4,29 +4,46 @@
   <meta charset="UTF-8" />
   <title>Biblecraft</title>
   <style>
-    body { margin:0; overflow:hidden; }
-    canvas { display:block; }
+  body { margin:0; overflow:hidden; }
+  canvas { display:block; }
 
-    /* Crosshair */
-    #crosshair {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      width: 32px;
-      height: 32px;
-      margin-left: -16px;
-      margin-top: -16px;
-      pointer-events: none;
-    }
-    #crosshair::before,
-    #crosshair::after {
-      content: '';
-      position: absolute;
-      background: #f0f0f0;
-    }
-    #crosshair::before { left:14px; top:0; width:4px; height:32px; }
-    #crosshair::after { top:14px; left:0; width:32px; height:4px; }
-  </style>
+  /* === Crosshair === */
+  #crosshair {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 32px;
+    height: 32px;
+    margin-left: -16px;
+    margin-top: -16px;
+    pointer-events: none;
+    z-index: 9999; /* make sure it stays above everything */
+  }
+
+  #crosshair::before,
+  #crosshair::after {
+    content: '';
+    position: absolute;
+    background: #f0f0f0;
+  }
+
+  /* vertical line */
+  #crosshair::before {
+    left: 14px;
+    top: 0;
+    width: 4px;
+    height: 32px;
+  }
+
+  /* horizontal line */
+  #crosshair::after {
+    top: 14px;
+    left: 0;
+    width: 32px;
+    height: 4px;
+  }
+</style>
+
 </head>
 <body>
   <div id="crosshair"></div>
