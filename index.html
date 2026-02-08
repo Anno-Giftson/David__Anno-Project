@@ -9,7 +9,7 @@
 
   canvas { display:block; }
 
-  /* Crosshair stays on top in full-screen */
+  /* Crosshair stays visible in full-screen */
   #crosshair {
     position: absolute;
     top: 50%;
@@ -47,20 +47,29 @@
 </style>
 </head>
 <body>
-  <div id="game-container">
-    <div id="crosshair"></div>
-  </div>
+<div id="game-container">
+  <div id="crosshair"></div>
+</div>
 
-  <!-- Three.js library -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/PointerLockControls.js"></script>
+<script src="main.js"></script>
+<script>
+  // Make sure click locks pointer and enters full-screen
+  const container = document.getElementById('game-container');
 
-  <!-- PointerLockControls (optional) -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/PointerLockControls.js"></script>
+  container.addEventListener('click', () => {
+    // Lock pointer (three.js PointerLockControls should also be attached to container)
+    if (controls && controls.lock) controls.lock();
 
-  <!-- Your separate main.js -->
-  <script src="main.js"></script>
+    // Request full-screen
+    if (container.requestFullscreen) container.requestFullscreen();
+    else if (container.webkitRequestFullscreen) container.webkitRequestFullscreen(); // Safari
+  });
+</script>
 </body>
 </html>
+
 
 
 
