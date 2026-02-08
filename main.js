@@ -7,19 +7,19 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87ceeb);
 
 const camera = new THREE.PerspectiveCamera(
-  75, window.innerWidth/window.innerHeight, 0.1, 1000
+  75, window.innerWidth / window.innerHeight, 0.1, 1000
 );
 
-const renderer = new THREE.WebGLRenderer({ antialias:true });
+const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 container.appendChild(renderer.domElement);
 
 // ==========================
 // Lighting
 // ==========================
-scene.add(new THREE.AmbientLight(0xffffff,0.4));
-const sun = new THREE.DirectionalLight(0xffffff,1);
-sun.position.set(5,10,5);
+scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+const sun = new THREE.DirectionalLight(0xffffff, 1);
+sun.position.set(5, 10, 5);
 scene.add(sun);
 
 // ==========================
@@ -42,20 +42,20 @@ class PointerLockControlsCustom {
     this.onMouseMove = this.onMouseMove.bind(this);
   }
 
-  getObject(){ return this.yawObject; }
+  getObject() { return this.yawObject; }
 
-  lock(){
-    if(this.isLocked) return;
+  lock() {
+    if (this.isLocked) return;
     this.isLocked = true;
     document.addEventListener('mousemove', this.onMouseMove, false);
   }
 
-  unlock(){
+  unlock() {
     this.isLocked = false;
     document.removeEventListener('mousemove', this.onMouseMove, false);
   }
 
-  onMouseMove(event){
+  onMouseMove(event) {
     if(!this.isLocked) return;
     const movementX = event.movementX || 0;
     const movementY = event.movementY || 0;
@@ -65,7 +65,7 @@ class PointerLockControlsCustom {
     this.pitchObject.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, this.pitchObject.rotation.x));
   }
 
-  moveForward(distance){
+  moveForward(distance) {
     const dir = new THREE.Vector3(0,0,-1);
     dir.applyQuaternion(this.pitchObject.quaternion);
     dir.applyQuaternion(this.yawObject.quaternion);
@@ -73,7 +73,7 @@ class PointerLockControlsCustom {
     this.yawObject.position.add(dir.multiplyScalar(distance));
   }
 
-  moveRight(distance){
+  moveRight(distance) {
     const vec = new THREE.Vector3(1,0,0).applyQuaternion(this.yawObject.quaternion);
     vec.normalize();
     this.yawObject.position.add(vec.multiplyScalar(distance));
@@ -154,11 +154,11 @@ window.addEventListener('resize', ()=>{
 // ==========================
 // Full-screen + pointer lock
 // ==========================
-container.addEventListener('click', async e=>{
+container.addEventListener('click', e=>{
   if(e.target.id === 'open-settings') return; // ignore gear button
   controls.lock();
-  if(container.requestFullscreen) await container.requestFullscreen();
-  else if(container.webkitRequestFullscreen) await container.webkitRequestFullscreen();
+  if(container.requestFullscreen) container.requestFullscreen();
+  else if(container.webkitRequestFullscreen) container.webkitRequestFullscreen();
 });
 
 // ==========================
@@ -193,6 +193,7 @@ document.addEventListener('click', ()=>{
     setTimeout(()=>{panel.style.display='none';},200);
   }
 });
+
 panel.addEventListener('click', e=>e.stopPropagation());
 
 // ==========================
@@ -207,6 +208,7 @@ document.getElementById('sensitivity').addEventListener('input', e=>{
 document.getElementById('invertY').addEventListener('change', e=>{
   invertY=e.target.checked;
 });
+
 
 
 
