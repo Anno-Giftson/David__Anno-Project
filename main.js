@@ -153,6 +153,62 @@ function animate() {
 }
 animate();
 
+const panel = document.getElementById('settings-panel');
+const button = document.getElementById('open-settings');
+
+let panelOpen = false;
+
+// Toggle panel on gear click
+button.addEventListener('click', e => {
+  e.stopPropagation(); // prevent click from closing immediately
+  panelOpen = !panelOpen;
+  if(panelOpen){
+    panel.style.display = 'block';
+    requestAnimationFrame(() => { // trigger animation
+      panel.style.opacity = 1;
+      panel.style.transform = 'translateY(0)';
+    });
+  } else {
+    panel.style.opacity = 0;
+    panel.style.transform = 'translateY(-10px)';
+    setTimeout(() => { if(!panelOpen) panel.style.display = 'none'; }, 200);
+  }
+});
+
+// Click anywhere else closes the panel
+document.addEventListener('click', () => {
+  if(panelOpen){
+    panelOpen = false;
+    panel.style.opacity = 0;
+    panel.style.transform = 'translateY(-10px)';
+    setTimeout(() => { panel.style.display = 'none'; }, 200);
+  }
+});
+
+// Prevent panel click from closing it
+panel.addEventListener('click', e => e.stopPropagation());
+
+// Sensitivity & Invert Y logic (same as before)
+let mouseSensitivity = 0.002;
+let invertY = false;
+
+controls.onMouseMove = function(event){
+  if(!this.isLocked) return;
+  const movementX = event.movementX || 0;
+  const movementY = event.movementY || 0;
+  this.yawObject.rotation.y -= movementX * mouseSensitivity;
+  this.pitchObject.rotation.x -= movementY * mouseSensitivity * (invertY ? -1 : 1);
+  this.pitchObject.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, this.pitchObject.rotation.x));
+}.bind(controls);
+
+document.getElementById('sensitivity').addEventListener('input', e => {
+  mouseSensitivity = parseFloat(e.target.value);
+});
+document.getElementById('invertY').addEventListener('change', e => {
+  invertY = e.target.checked;
+});
+
+
 // ==========================
 // Resize
 // ==========================
