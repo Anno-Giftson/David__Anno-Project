@@ -49,7 +49,7 @@ class PointerLockControlsCustom {
     this.yawObject.position.y = 2;
     this.yawObject.add(this.pitchObject);
 
-    this.isLocked = false;
+    this.isLocked = true;
     this.onMouseMove = this.onMouseMove.bind(this);
   }
 
