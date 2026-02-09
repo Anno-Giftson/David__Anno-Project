@@ -1,3 +1,4 @@
+window.blocks = [];
 // ==========================
 // Variables
 // ==========================
@@ -110,15 +111,6 @@ for(let x=-worldSize/2;x<worldSize/2;x++){
     blocks.push(block.position.clone());
   }
 }
-
-
-// Keep track of block positions for collisions
-window.blocks = [];
-scene.traverse(obj => {
-  if(obj.isMesh && obj.geometry.type === "BoxGeometry") {
-    blocks.push(obj.position.clone());
-  }
-});
 
 
 // ==========================
