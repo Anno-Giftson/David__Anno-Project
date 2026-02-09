@@ -92,6 +92,7 @@ class PointerLockControlsCustom {
 
 const controls = new PointerLockControlsCustom(camera, container);
 scene.add(controls.getObject());
+controls.getObject().position.set(0, 2, 5);
 
 // ==========================
 // Ground Blocks
