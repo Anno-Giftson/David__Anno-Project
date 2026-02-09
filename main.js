@@ -105,11 +105,14 @@ for(let x=-worldSize/2;x<worldSize/2;x++){
     const block = new THREE.Mesh(geometry, material);
     block.position.set(x,0,z);
     scene.add(block);
+
+    blocks.push(block.position.clone());
   }
 }
 
+
 // Keep track of block positions for collisions
-const blocks = [];
+window.blocks = [];
 scene.traverse(obj => {
   if(obj.isMesh && obj.geometry.type === "BoxGeometry") {
     blocks.push(obj.position.clone());
