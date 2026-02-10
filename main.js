@@ -223,10 +223,3 @@ document.getElementById('sensitivity').addEventListener('input', e=>{
 document.getElementById('invertY').addEventListener('change', e=>{
   invertY=e.target.checked;
 });
-
-
-
-
-
-
-
