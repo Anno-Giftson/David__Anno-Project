@@ -119,5 +119,3 @@ function jump() {
 document.addEventListener('keydown', e => {
   if (e.code === "Space") jump();
 });
-
-
