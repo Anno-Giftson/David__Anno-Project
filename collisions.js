@@ -2,18 +2,17 @@
 // Collision & Physics (Minecraft-style)
 // ==========================
 
-const playerHeight = 1.8;    // Player/camera height
-const playerRadius = 0.3;    // Horizontal collision radius
-let velocityY = 0;           // Vertical speed
-const gravity = -0.01;       // Gravity per frame
+const playerHeight = 1.8;
+const playerRadius = 0.3;
+let velocityY = 0;
+const gravity = -0.01;
 let canJump = false;
-
 
 // ==========================
 // Collision check
 // ==========================
 function checkCollision(pos) {
-  for (const blockPos of blocks) {
+  for (const blockPos of window.blocks) {
     const dx = pos.x - blockPos.x;
     const dz = pos.z - blockPos.z;
     const dy = pos.y - blockPos.y;
@@ -32,12 +31,12 @@ function checkCollision(pos) {
 // ==========================
 function applyGravity() {
   velocityY += gravity;
-  const nextPos = controls.getObject().position.clone();
+  const nextPos = window.controls.getObject().position.clone();
   nextPos.y += velocityY;
 
   let collided = false;
 
-  for (const blockPos of blocks) {
+  for (const blockPos of window.blocks) {
     const dx = nextPos.x - blockPos.x;
     const dz = nextPos.z - blockPos.z;
     const dy = nextPos.y - blockPos.y;
@@ -64,7 +63,7 @@ function applyGravity() {
     }
   }
 
-  controls.getObject().position.y = nextPos.y;
+  window.controls.getObject().position.y = nextPos.y;
   if (!collided) canJump = false;
 }
 
@@ -72,9 +71,8 @@ function applyGravity() {
 // Horizontal collisions
 // ==========================
 function moveWithCollision(forwardVec, rightVec, speedZ, speedX) {
-  const nextPos = controls.getObject().position.clone();
+  const nextPos = window.controls.getObject().position.clone();
 
-  // Move separately to allow sliding along walls
   const forwardStep = forwardVec.clone().multiplyScalar(speedZ);
   const rightStep = rightVec.clone().multiplyScalar(speedX);
 
@@ -86,7 +84,7 @@ function moveWithCollision(forwardVec, rightVec, speedZ, speedX) {
   const posRight = nextPos.clone().add(rightStep);
   if (!checkCollision(posRight)) nextPos.copy(posRight);
 
-  controls.getObject().position.copy(nextPos);
+  window.controls.getObject().position.copy(nextPos);
 }
 
 // ==========================
@@ -95,7 +93,7 @@ function moveWithCollision(forwardVec, rightVec, speedZ, speedX) {
 function updatePlayerPhysics() {
   applyGravity();
 
-  const yaw = controls.getObject().rotation.y;
+  const yaw = window.controls.getObject().rotation.y;
   const forward = new THREE.Vector3(Math.sin(-yaw), 0, Math.cos(-yaw));
   const right = new THREE.Vector3(Math.sin(Math.PI/2 - yaw), 0, Math.cos(Math.PI/2 - yaw));
 
