@@ -97,9 +97,14 @@ function moveWithCollision(forwardVec, rightVec, speedZ, speedX) {
 function updatePlayerPhysics() {
   applyGravity();
 
-  const yaw = window.controls.getObject().rotation.y;
-  const forward = new THREE.Vector3(Math.sin(-yaw), 0, Math.cos(-yaw));
-  const right = new THREE.Vector3(Math.sin(Math.PI/2 - yaw), 0, Math.cos(Math.PI/2 - yaw));
+  const forward = new THREE.Vector3();
+camera.getWorldDirection(forward);
+forward.y = 0;
+forward.normalize();
+
+const right = new THREE.Vector3();
+right.crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
+
 
   let moveX = 0, moveZ = 0;
   if (moveForward) moveZ -= speed;
