@@ -23,7 +23,7 @@ const camera = new THREE.PerspectiveCamera(
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio); // ← optional, smoother
+renderer.setPixelRatio(window.devicePixelRatio);
 container.appendChild(renderer.domElement);
 
 // ==========================
@@ -49,7 +49,7 @@ class PointerLockControlsCustom {
     this.yawObject.position.y = 2;
     this.yawObject.add(this.pitchObject);
 
-    this.isLocked = false; // ← start unlocked
+    this.isLocked = false;
     this.onMouseMove = this.onMouseMove.bind(this);
   }
 
@@ -58,7 +58,7 @@ class PointerLockControlsCustom {
   lock() {
     if (this.isLocked) return;
     this.isLocked = true;
-    document.addEventListener('mousemove', this.onMouseMove, false); // ← listen to mouse
+    document.addEventListener('mousemove', this.onMouseMove, false);
   }
 
   unlock() {
@@ -94,6 +94,7 @@ class PointerLockControlsCustom {
 const controls = new PointerLockControlsCustom(camera, container);
 scene.add(controls.getObject());
 controls.getObject().position.set(0, 2, 5);
+window.controls = controls; // Make controls global for collisions.js
 
 // ==========================
 // Ground Blocks
@@ -121,7 +122,7 @@ document.addEventListener('keydown', e=>{
     case "KeyS": moveBackward=true; break;
     case "KeyA": moveLeft=true; break;
     case "KeyD": moveRight=true; break;
-    case "Space": jump(); break; // handled in collisions.js
+    case "Space": jump(); break;
   }
 });
 
@@ -140,7 +141,7 @@ document.addEventListener('keyup', e=>{
 function animate() {
   requestAnimationFrame(animate);
 
-  updatePlayerPhysics();  // handles movement, collisions, gravity
+  updatePlayerPhysics();
 
   renderer.render(scene, camera);
 }
@@ -156,11 +157,45 @@ window.addEventListener('resize', ()=>{
 });
 
 // ==========================
-// Settings drop-down logic (BEFORE click listener)
+// Click to lock pointer and fullscreen
+// ==========================
+container.addEventListener('click', e=>{
+  if(e.target.id === 'open-settings' || e.target.closest('#settings-panel')) return;
+
+  // Request pointer lock
+  container.requestPointerLock = container.requestPointerLock || container.mozRequestPointerLock;
+  if(container.requestPointerLock) {
+    container.requestPointerLock().catch(err => console.log('Pointer lock failed:', err));
+  }
+
+  // Request fullscreen
+  if(container.requestFullscreen) {
+    container.requestFullscreen().catch(err => {});
+  }
+});
+
+// Handle pointer lock change
+document.addEventListener('pointerlockchange', ()=>{
+  if(document.pointerLockElement === container) {
+    controls.lock();
+  } else {
+    controls.unlock();
+  }
+});
+
+document.addEventListener('mozpointerlockchange', ()=>{
+  if(document.mozPointerLockElement === container) {
+    controls.lock();
+  } else {
+    controls.unlock();
+  }
+});
+
+// ==========================
+// Settings panel
 // ==========================
 const panel = document.getElementById('settings-panel');
 const button = document.getElementById('open-settings');
-
 let panelOpen=false;
 
 button.addEventListener('click', e=>{
@@ -169,51 +204,13 @@ button.addEventListener('click', e=>{
   if(panelOpen){
     panel.style.display='block';
     requestAnimationFrame(()=>{
-      panel.style.opacity=1;
+      panel.style.opacity='1';
       panel.style.transform='translateY(0)';
     });
   } else {
-    panel.style.opacity=0;
+    panel.style.opacity='0';
     panel.style.transform='translateY(-10px)';
     setTimeout(()=>{if(!panelOpen) panel.style.display='none';},200);
-  }
-});
-
-// ==========================
-// Fullscreen + pointer lock
-// ==========================
-container.addEventListener('click', e=>{
-  // Don't lock if clicking settings button or panel
-  if(e.target.id === 'open-settings' || e.target.closest('#settings-panel')) return;
-
-  // Request pointer lock FIRST
-  if(document.pointerLockElement === null) {
-    if(container.requestPointerLock) {
-      container.requestPointerLock();
-    } else if(container.mozRequestPointerLock) {
-      container.mozRequestPointerLock();
-    }
-  }
-
-  // Request fullscreen
-  if(container.requestFullscreen) container.requestFullscreen().catch(err => {});
-  else if(container.webkitRequestFullscreen) container.webkitRequestFullscreen();
-});
-
-// Handle pointer lock change event
-document.addEventListener('pointerlockchange', () => {
-  if(document.pointerLockElement === container) {
-    controls.lock();
-  } else {
-    controls.unlock();
-  }
-});
-
-document.addEventListener('mozpointerlockchange', () => {
-  if(document.mozPointerLockElement === container) {
-    controls.lock();
-  } else {
-    controls.unlock();
   }
 });
 
