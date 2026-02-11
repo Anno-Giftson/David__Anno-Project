@@ -107,8 +107,8 @@ right.crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
 
 
   let moveX = 0, moveZ = 0;
-  if (moveForward) moveZ -= speed;
-  if (moveBackward) moveZ += speed;
+  if (moveForward) moveZ += speed;
+  if (moveBackward) moveZ -= speed;
   if (moveRight) moveX += speed;
   if (moveLeft) moveX -= speed;
 
