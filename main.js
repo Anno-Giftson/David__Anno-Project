@@ -137,18 +137,6 @@ document.addEventListener('keydown', e => {
     case "KeyD": moveRight=true; break;
   }
 
-  // Double space to toggle flying
-  if(e.code === "Space") {
-    const now = Date.now();
-    if(now - spacePressedLast < doubleTapTime){
-      isFlying = !isFlying;
-      velocityY = 0;  // stop vertical momentum when toggling
-    }
-    spacePressedLast = now;
-
-    if(!isFlying) jump(); // only jump if not flying
-  }
-});
 
 document.addEventListener('keyup', e => {
   window.keys[e.code] = false;
