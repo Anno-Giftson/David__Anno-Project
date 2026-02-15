@@ -115,21 +115,18 @@ const material = new THREE.MeshStandardMaterial({color:0x228B22});
 window.blockGeometry = geometry;
 window.blockMaterial = material;
 
-const worldSize = 50; // how wide/deep the land is
-const groundGeometry = new THREE.BoxGeometry(worldSize, 1, worldSize); // height=1
-const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x228B22 });
-const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-ground.position.set(0, 0.5, 0); // y=0.5 so top is at y=1
-scene.add(ground);
+const worldSize = 20;
 
-// Add to collision arrays
-window.blocks.push(new THREE.Vector3(0, 0, 0)); 
-window.blockMeshes.push(ground);
+for(let x=-worldSize/2;x<worldSize/2;x++){ 
+  for(let z=-worldSize/2; z<worldSize/2; z++){ 
+    const block = new THREE.Mesh(geometry, material);
+    block.position.set(x,0,z);
+    scene.add(block);
 
-
-// Optional: store one "block" position for collision detection
-window.blocks.push(new THREE.Vector3(0, 0, 0));
-window.blockMeshes.push(ground);
+    window.blocks.push(block.position.clone());
+    window.blockMeshes.push(block);
+  }
+}
 
 
 
