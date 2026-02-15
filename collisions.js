@@ -105,59 +105,45 @@ function moveWithCollision(forwardVec, rightVec, speedZ, speedX) {
   window.controls.getObject().position.copy(nextPos);
 }
 
-// ==========================
-// Player physics integration
-// ==========================
-window.updatePlayerPhysics = function () {
+function updatePlayerPhysics() {
   applyGravity();
 
   const forward = new THREE.Vector3();
-window.camera.getWorldDirection(forward);
-forward.y = 0;
-forward.normalize();
+  camera.getWorldDirection(forward);
+  forward.y = 0;
+  forward.normalize();
   
-const right = new THREE.Vector3();
-right.crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
+  const right = new THREE.Vector3();
+  right.crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
 
+  let moveX = 0, moveY = 0, moveZ = 0;
 
-  let moveX = 0, moveZ = 0, moveY = 0;
-  if (isFlying) {
+  if(isFlying){
+    // Flying movement
+    if(moveForward) moveZ += flySpeed;
+    if(moveBackward) moveZ -= flySpeed;
+    if(moveRight) moveX += flySpeed;
+    if(moveLeft) moveX -= flySpeed;
 
-  if (moveForward) moveZ += flySpeed;
-  if (moveBackward) moveZ -= flySpeed;
-  if (moveRight) moveX += flySpeed;
-  if (moveLeft) moveX -= flySpeed;
+    if(window.keys["Space"]) moveY += flySpeed;      // go up
+    if(window.keys["ShiftLeft"]) moveY -= flySpeed;  // go down
 
-  if (window.keys["Space"]) moveY += flySpeed;
-  if (window.keys["ShiftLeft"]) moveY -= flySpeed;
+    const nextPos = window.controls.getObject().position.clone();
+    nextPos.add(forward.clone().multiplyScalar(moveZ));
+    nextPos.add(right.clone().multiplyScalar(moveX));
+    nextPos.y += moveY;
 
-} else {
+    window.controls.getObject().position.copy(nextPos);
 
-  if (moveForward) moveZ += speed;
-  if (moveBackward) moveZ -= speed;
-  if (moveRight) moveX += speed;
-  if (moveLeft) moveX -= speed;
+  } else {
+    // Normal walking with collisions
+    if(moveForward) moveZ += speed;
+    if(moveBackward) moveZ -= speed;
+    if(moveRight) moveX += speed;
+    if(moveLeft) moveX -= speed;
 
-}
-
-
-  if (isFlying) {
-  const nextPos = window.controls.getObject().position.clone();
-  nextPos.add(forward.clone().multiplyScalar(moveZ));
-  nextPos.add(right.clone().multiplyScalar(moveX));
-  nextPos.y += moveY;
-  
-  window.controls.getObject().position.copy(nextPos);
-} else {
-  moveWithCollision(forward, right, moveZ, moveX);
-}
-
-
-  // Apply vertical movement when flying
-if (isFlying) {
-  window.controls.getObject().position.y += moveY;
-}
-
+    moveWithCollision(forward, right, moveZ, moveX);
+  }
 }
 
 // ==========================
