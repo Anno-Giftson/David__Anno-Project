@@ -135,24 +135,23 @@ document.addEventListener('keydown', e => {
 
   // Normal movement flags
   switch(e.code){
-    case "KeyW": moveForward=true; break;
-    case "KeyS": moveBackward=true; break;
-    case "KeyA": moveLeft=true; break;
-    case "KeyD": moveRight=true; break;
+    case "KeyW": window.moveForward = true; break;
+    case "KeyS": window.moveBackward = true; break;
+    case "KeyA": window.moveLeft = true; break;
+    case "KeyD": window.moveRight = true; break;
   }
-
+});
 
 document.addEventListener('keyup', e => {
   window.keys[e.code] = false;
 
   switch(e.code){
-    case "KeyW": moveForward=false; break;
-    case "KeyS": moveBackward=false; break;
-    case "KeyA": moveLeft=false; break;
-    case "KeyD": moveRight=false; break;
+    case "KeyW": window.moveForward = false; break;
+    case "KeyS": window.moveBackward = false; break;
+    case "KeyA": window.moveLeft = false; break;
+    case "KeyD": window.moveRight = false; break;
   }
 });
-
 
 
 // ==========================
