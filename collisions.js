@@ -141,7 +141,17 @@ right.crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
 }
 
 
+  if (isFlying) {
+  const nextPos = window.controls.getObject().position.clone();
+  nextPos.add(forward.clone().multiplyScalar(moveZ));
+  nextPos.add(right.clone().multiplyScalar(moveX));
+  nextPos.y += moveY;
+  
+  window.controls.getObject().position.copy(nextPos);
+} else {
   moveWithCollision(forward, right, moveZ, moveX);
+}
+
 
   // Apply vertical movement when flying
 if (isFlying) {
