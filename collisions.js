@@ -171,15 +171,12 @@ document.addEventListener('keydown', e => {
 
   const now = Date.now();
 
-  if (now - spacePressedLast < doubleTapTime) {
-  if (!isFlying) {
-    isFlying = true;   // only turn ON
-    velocityY = 0;
-    canJump = false;
-  } else {
-    isFlying = false;  // optional: turn off only if grounded
-  }
+ if (now - spacePressedLast < doubleTapTime) {
+  isFlying = !isFlying;
+  velocityY = 0;
+  canJump = false;
 }
+
 
   } else {
     if (!isFlying) jump();
