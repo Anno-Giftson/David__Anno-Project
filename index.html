@@ -1,349 +1,341 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Bible Craft Pro: Genesis Edition</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --gold: #ffd700;
-            --parchment: #f4e4bc;
-            --ink: #2c1e0f;
-        }
-        body { margin: 0; overflow: hidden; font-family: 'Quicksand', sans-serif; background: #000; }
+<meta charset="UTF-8">
+<title>Bible Craft Pro: Genesis Edition</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+    --gold: #ffd700;
+    --parchment: #f4e4bc;
+    --ink: #2c1e0f;
+}
+body { margin:0; overflow:hidden; font-family:'Quicksand', sans-serif; background:#000; }
 
-        /* UI Overlay */
-        #ui-layer {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; display: flex; flex-direction: column; justify-content: space-between;
-        }
+#ui-layer {
+    position:absolute; top:0; left:0; width:100%; height:100%;
+    pointer-events:none; display:flex; flex-direction:column; justify-content:space-between;
+}
 
-        /* Top Bar */
-        #header {
-            background: rgba(44, 30, 15, 0.8);
-            border-bottom: 3px solid var(--gold);
-            color: var(--parchment);
-            padding: 10px 20px;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        h1 { font-family: 'Cinzel', serif; margin: 0; font-size: 1.5rem; letter-spacing: 2px; }
+#header {
+    background:rgba(44,30,15,0.8);
+    border-bottom:3px solid var(--gold);
+    color:var(--parchment);
+    padding:10px 20px;
+    display:flex; justify-content:space-between; align-items:center;
+}
 
-        /* Crosshair */
-        #crosshair {
-            position: absolute; top: 50%; left: 50%;
-            width: 15px; height: 15px; border: 2px solid white;
-            border-radius: 50%; transform: translate(-50%, -50%);
-        }
+h1 { font-family:'Cinzel', serif; margin:0; font-size:1.5rem; }
 
-        /* Hotbar */
-        #hotbar {
-            display: flex; gap: 10px; padding: 10px;
-            background: rgba(0,0,0,0.5); border-radius: 10px 10px 0 0;
-            margin: 0 auto; pointer-events: auto;
-        }
-        .slot {
-            width: 50px; height: 50px; background: rgba(255,255,255,0.2);
-            border: 2px solid #555; display: flex; justify-content: center;
-            align-items: center; font-size: 1.5rem; border-radius: 5px; color: white;
-            position: relative;
-        }
-        .slot.active { border-color: var(--gold); background: rgba(255, 215, 0, 0.3); }
-        .slot::after {
-            content: attr(data-key); position: absolute; top: 2px; left: 4px;
-            font-size: 0.7rem; color: var(--gold);
-        }
+#crosshair {
+    position:absolute; top:50%; left:50%;
+    width:15px; height:15px; border:2px solid white;
+    border-radius:50%; transform:translate(-50%,-50%);
+}
 
-        /* Quest Log */
-        #quest-log {
-            position: absolute; left: 20px; top: 80px;
-            background: rgba(244, 228, 188, 0.9); color: var(--ink);
-            padding: 15px; border-radius: 5px; border-left: 5px solid #8b4513;
-            max-width: 250px; font-weight: 600; box-shadow: 5px 5px 15px rgba(0,0,0,0.5);
-        }
+#hotbar {
+    display:flex; gap:10px; padding:10px;
+    background:rgba(0,0,0,0.5); border-radius:10px 10px 0 0;
+    margin:0 auto; pointer-events:auto;
+}
 
-        #instructions {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: var(--parchment); color: var(--ink); padding: 20px;
-            text-align: center; border: 4px double var(--ink); pointer-events: auto;
-            cursor: pointer; z-index: 10;
-        }
-    </style>
+.slot {
+    width:50px; height:50px;
+    background:rgba(255,255,255,0.2);
+    border:2px solid #555;
+    display:flex; justify-content:center; align-items:center;
+    font-size:1.5rem; border-radius:5px; color:white;
+    position:relative;
+}
+
+.slot.active {
+    border-color:var(--gold);
+    background:rgba(255,215,0,0.3);
+}
+
+.slot::after {
+    content:attr(data-key);
+    position:absolute; top:2px; left:4px;
+    font-size:0.7rem; color:var(--gold);
+}
+
+#quest-log {
+    position:absolute; left:20px; top:80px;
+    background:rgba(244,228,188,0.95);
+    color:var(--ink);
+    padding:15px;
+    border-radius:5px;
+    border-left:5px solid #8b4513;
+    max-width:250px;
+    font-weight:600;
+}
+
+#instructions {
+    position:absolute; top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    background:var(--parchment);
+    color:var(--ink);
+    padding:20px;
+    text-align:center;
+    border:4px double var(--ink);
+    pointer-events:auto;
+    cursor:pointer;
+    z-index:10;
+}
+</style>
 </head>
 <body>
 
 <div id="instructions">
-    <h1 style="color: #8b4513">BIBLE CRAFT</h1>
-    <p>The desert awaits, Wanderer.</p>
-    <p><b>WASD</b> to Walk | <b>Left Click</b> to Mine | <b>Right Click</b> to Build</p>
-    <p><b>1, 2, 3</b> to Switch Tools</p>
-    <button style="padding: 10px 20px; font-family: 'Cinzel'; cursor: pointer;">BEGIN JOURNEY</button>
+<h1 style="color:#8b4513">BIBLE CRAFT</h1>
+<p>The desert awaits, Wanderer.</p>
+<p><b>WASD</b> Move | <b>Mouse</b> Look</p>
+<p><b>Left Click</b> Mine | <b>Right Click</b> Build</p>
+<p><b>1,2,3</b> Switch | <b>Space</b> Jump</p>
+<button style="padding:10px 20px;font-family:'Cinzel';cursor:pointer;">BEGIN JOURNEY</button>
 </div>
 
 <div id="ui-layer">
-    <div id="header">
-        <h1>BIBLE CRAFT</h1>
-        <div>Wisdom Score: <span id="wisdom-val">0</span></div>
-    </div>
+<div id="header">
+<h1>BIBLE CRAFT</h1>
+<div>Wisdom: <span id="wisdom-val">0</span></div>
+</div>
 
-    <div id="quest-log">
-        <div style="font-family: 'Cinzel'; border-bottom: 1px solid #8b4513; margin-bottom: 5px;">CURRENT TASK</div>
-        <span id="task">Gather 5 Cedar Wood to start your camp.</span>
-    </div>
+<div id="quest-log">
+<div style="font-family:'Cinzel';border-bottom:1px solid #8b4513;margin-bottom:5px;">CURRENT TASK</div>
+<span id="task">Gather 5 Cedar Wood to begin.</span>
+</div>
 
-    <div id="crosshair"></div>
+<div id="crosshair"></div>
 
-    <div id="hotbar">
-        <div class="slot active" data-key="1" id="slot1">⛏️</div>
-        <div class="slot" data-key="2" id="slot2">🪵</div>
-        <div class="slot" data-key="3" id="slot3">🧱</div>
-    </div>
+<div id="hotbar">
+<div class="slot active" data-key="1" id="slot1">⛏️</div>
+<div class="slot" data-key="2" id="slot2">🪵</div>
+<div class="slot" data-key="3" id="slot3">🧱</div>
+</div>
 </div>
 
 <script type="importmap">
-    { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
 </script>
 
 <script type="module">
-    import * as THREE from 'three';
-    import { PointerLockControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/PointerLockControls.js';
+import * as THREE from 'three';
+import { PointerLockControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/PointerLockControls.js';
 
-    // --- INITIALIZATION ---
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.shadowMap.enabled = true;
-    document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+document.body.appendChild(renderer.domElement);
 
-    const controls = new PointerLockControls(camera, document.body);
-    document.getElementById('instructions').addEventListener('click', () => controls.lock());
-    controls.addEventListener('lock', () => document.getElementById('instructions').style.display = 'none');
-    controls.addEventListener('unlock', () => document.getElementById('instructions').style.display = 'block');
+const controls = new PointerLockControls(camera, document.body);
+document.getElementById('instructions').addEventListener('click', () => controls.lock());
+controls.addEventListener('lock', () => document.getElementById('instructions').style.display='none');
+controls.addEventListener('unlock', () => document.getElementById('instructions').style.display='block');
 
-    // --- GAME STATE ---
-    let inventory = { wood: 0, stone: 0, wisdom: 0 };
-    let selectedSlot = 1; 
-    let blocks = [];
-    let dayTime = 0; // 0 to 1
+let inventory = { wood:0, stone:0, wisdom:0 };
+let questStage = 1;
+let selectedSlot = 1;
+let blocks = [];
+let dayTime = 0;
 
-    // --- MATERIALS ---
-    const loader = new THREE.TextureLoader();
-    const createMat = (color) => new THREE.MeshLambertMaterial({ color });
-    const mats = {
-        grass: createMat(0x6e8b3d),
-        sand: createMat(0xd2b48c),
-        wood: createMat(0x5d4037),
-        stone: createMat(0x808080),
-        leaf: createMat(0x228b22)
-    };
+const createMat = (color) => new THREE.MeshLambertMaterial({ color });
+const mats = {
+grass:createMat(0x6e8b3d),
+sand:createMat(0xd2b48c),
+wood:createMat(0x5d4037),
+stone:createMat(0x808080),
+leaf:createMat(0x228b22)
+};
 
-    // --- LIGHTING ---
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
-    scene.add(ambientLight);
-    const sun = new THREE.DirectionalLight(0xffffff, 1.0);
-    sun.castShadow = true;
-    scene.add(sun);
+const ambientLight = new THREE.AmbientLight(0xffffff,0.4);
+scene.add(ambientLight);
+const sun = new THREE.DirectionalLight(0xffffff,1.0);
+sun.castShadow=true;
+scene.add(sun);
 
-   // --- WORLD GEN WITH HEIGHT ---
-function getHeight(x, z) {
-    return Math.floor(
-        Math.sin(x * 0.2) * 2 +
-        Math.cos(z * 0.2) * 2 +
-        Math.random() * 1
-    );
+const boxGeo = new THREE.BoxGeometry(1,1,1);
+
+function addBlock(x,y,z,mat,type){
+const mesh=new THREE.Mesh(boxGeo,mat);
+mesh.position.set(x,y,z);
+mesh.userData={type};
+mesh.castShadow=true;
+mesh.receiveShadow=true;
+scene.add(mesh);
+blocks.push(mesh);
+return mesh;
 }
 
-for (let x = -30; x < 30; x++) {
-    for (let z = -30; z < 30; z++) {
-        const height = getHeight(x, z);
-
-        for (let y = 0; y <= height; y++) {
-            const isTop = y === height;
-            const mat = isTop
-                ? (Math.random() > 0.7 ? mats.sand : mats.grass)
-                : mats.stone;
-
-            const type = isTop
-                ? (mat === mats.sand ? 'sand' : 'grass')
-                : 'stone';
-
-            addBlock(x, y, z, mat, type);
-        }
-
-        // Trees spawn only on grass tops
-        if (Math.random() > 0.97) {
-            for (let h = height + 1; h <= height + 3; h++)
-                addBlock(x, h, z, mats.wood, 'tree');
-            addBlock(x, height + 4, z, mats.leaf, 'leaf');
-        }
-    }
+function getHeight(x,z){
+return Math.floor(Math.sin(x*0.2)*2 + Math.cos(z*0.2)*2 + Math.random());
 }
 
-    // Build the Sinai Wilderness
-    for(let x = -20; x < 20; x++) {
-        for(let z = -20; z < 20; z++) {
-            const isSand = Math.random() > 0.7;
-            addBlock(x, 0, z, isSand ? mats.sand : mats.grass, isSand ? 'sand' : 'grass');
-            
-            if(Math.random() > 0.97) { // Tree
-                for(let h=1; h<=3; h++) addBlock(x, h, z, mats.wood, 'tree');
-                addBlock(x, 4, z, mats.leaf, 'leaf');
-            } else if(Math.random() > 0.98) { // Stone
-                addBlock(x, 1, z, mats.stone, 'stone');
-            }
-        }
-    }
-
-    camera.position.y = 2;
-
-    // --- INTERACTION ---
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2(0,0);
-
-    window.addEventListener('mousedown', (e) => {
-        if (!controls.isLocked) return;
-
-        raycaster.setFromCamera(mouse, camera);
-        const intersects = raycaster.intersectObjects(blocks);
-
-        if (intersects.length > 0) {
-            const intersect = intersects[0];
-            const target = intersect.object;
-
-            if (e.button === 0) { // LEFT CLICK: MINE
-                if (selectedSlot === 1 && intersect.distance < 5) {
-                    if (target.userData.type === 'tree') inventory.wood++;
-                    if (target.userData.type === 'stone') inventory.stone++;
-                    if (target.userData.type !== 'grass' && target.userData.type !== 'sand') {
-                        scene.remove(target);
-                        blocks.splice(blocks.indexOf(target), 1);
-                        inventory.wisdom += 10;
-                        updateUI();
-                    }
-                }
-            } 
-            else if (e.button === 2) { // RIGHT CLICK: BUILD
-                if (intersect.distance < 5) {
-                    const pos = target.position.clone().add(intersect.face.normal);
-                    if (selectedSlot === 2 && inventory.wood > 0) {
-                        addBlock(pos.x, pos.y, pos.z, mats.wood, 'tree');
-                        inventory.wood--;
-                    } else if (selectedSlot === 3 && inventory.stone > 0) {
-                        addBlock(pos.x, pos.y, pos.z, mats.stone, 'stone');
-                        inventory.stone--;
-                    }
-                    updateUI();
-                }
-            }
-        }
-    });
-
-    // --- CONTROLS & UI ---
-    window.addEventListener('keydown', (e) => {
-        if(e.key === '1') setSlot(1);
-        if(e.key === '2') setSlot(2);
-        if(e.key === '3') setSlot(3);
-    });
-
-    function setSlot(n) {
-        selectedSlot = n;
-        document.querySelectorAll('.slot').forEach(s => s.classList.remove('active'));
-        document.getElementById('slot' + n).classList.add('active');
-    }
-
-    
-    // --- GAME LOOP ---
-    let moveF = false, moveB = false, moveL = false, moveR = false;
-    document.addEventListener('keydown', (e) => {
-        if(e.code === 'KeyW') moveF = true; if(e.code === 'KeyS') moveB = true;
-        if(e.code === 'KeyA') moveL = true; if(e.code === 'KeyD') moveR = true;
-    });
-    document.addEventListener('keyup', (e) => {
-        if(e.code === 'KeyW') moveF = false; if(e.code === 'KeyS') moveB = false;
-        if(e.code === 'KeyA') moveL = false; if(e.code === 'KeyD') moveR = false;
-    });
-
-    const velocity = new THREE.Vector3();
-    let prevTime = performance.now();
-
-    function animate() {
-        requestAnimationFrame(animate);
-        const time = performance.now();
-        const delta = (time - prevTime) / 1000;
-
-        if (controls.isLocked) {
-            velocity.x -= velocity.x * 10.0 * delta;
-            velocity.z -= velocity.z * 10.0 * delta;
-
-            if (moveF) velocity.z -= 100.0 * delta;
-            if (moveB) velocity.z += 100.0 * delta;
-            if (moveL) velocity.x -= 100.0 * delta;
-            if (moveR) velocity.x += 100.0 * delta;
-
-            controls.moveRight(-velocity.x * delta);
-            controls.moveForward(-velocity.z * delta);
-        }
-
-       dayTime += 0.0003;
-const sunAngle = dayTime * Math.PI * 2;
-
-sun.position.set(
-    Math.cos(sunAngle) * 40,
-    Math.sin(sunAngle) * 40,
-    20
-);
-
-const heightFactor = Math.max(0, Math.sin(sunAngle));
-
-sun.intensity = 0.3 + heightFactor * 1.2;
-ambientLight.intensity = 0.2 + heightFactor * 0.5;
-
-const skyColor = new THREE.Color().setHSL(
-    0.6 - heightFactor * 0.1,
-    0.7,
-    0.2 + heightFactor * 0.4
-);
-
-scene.background = skyColor;
-scene.fog = new THREE.Fog(skyColor, 10, 80);
-        
-        // Change sky color based on sun height
-        const skyCol = new THREE.Color().setHSL(0.6, 0.5, Math.max(0.1, Math.sin(sunAngle)));
-        scene.background = skyCol;
-        scene.fog = new THREE.Fog(skyCol, 1, 50);
-
-        prevTime = time;
-        renderer.render(scene, camera);
-    }
-    animate();
-
-    function updateUI() {
-    document.getElementById('wisdom-val').innerText = inventory.wisdom;
-
-    if (questStage === 1 && inventory.wood >= 5) {
-        document.getElementById('task').innerText =
-            "Quest Complete! Gather 5 Stone for an altar.";
-        questStage = 2;
-        inventory.wisdom += 50;
-    }
-
-    else if (questStage === 2 && inventory.stone >= 5) {
-        document.getElementById('task').innerText =
-            "Build an altar of 5 stones to honor the heavens.";
-        questStage = 3;
-        inventory.wisdom += 100;
-    }
-
-    else if (questStage === 3 && inventory.stone === 0) {
-        document.getElementById('task').innerText =
-            "The altar stands. A new journey awaits...";
-        questStage = 4;
-        inventory.wisdom += 200;
-    }
+for(let x=-30;x<30;x++){
+for(let z=-30;z<30;z++){
+const h=getHeight(x,z);
+for(let y=0;y<=h;y++){
+const isTop=y===h;
+const mat=isTop?(Math.random()>0.7?mats.sand:mats.grass):mats.stone;
+const type=isTop?(mat===mats.sand?'sand':'grass'):'stone';
+addBlock(x,y,z,mat,type);
+}
+if(Math.random()>0.97){
+for(let t=h+1;t<=h+3;t++) addBlock(x,t,z,mats.wood,'tree');
+addBlock(x,h+4,z,mats.leaf,'leaf');
+}
+}
 }
 
-    // Prevent context menu on right click
-    window.addEventListener('contextmenu', e => e.preventDefault());
+camera.position.y=3;
+
+const raycaster=new THREE.Raycaster();
+const mouse=new THREE.Vector2(0,0);
+
+window.addEventListener('mousedown',(e)=>{
+if(!controls.isLocked) return;
+raycaster.setFromCamera(mouse,camera);
+const hits=raycaster.intersectObjects(blocks);
+if(hits.length===0) return;
+const hit=hits[0];
+const obj=hit.object;
+
+if(e.button===0 && hit.distance<5){
+if(selectedSlot===1){
+if(obj.userData.type==='tree') inventory.wood++;
+if(obj.userData.type==='stone') inventory.stone++;
+if(obj.userData.type!=='grass' && obj.userData.type!=='sand'){
+scene.remove(obj);
+blocks.splice(blocks.indexOf(obj),1);
+inventory.wisdom+=10;
+updateUI();
+}
+}
+}
+
+if(e.button===2 && hit.distance<5){
+const pos=obj.position.clone().add(hit.face.normal);
+if(Math.abs(pos.x-camera.position.x)<1 &&
+Math.abs(pos.y-camera.position.y)<2 &&
+Math.abs(pos.z-camera.position.z)<1) return;
+
+if(selectedSlot===2 && inventory.wood>0){
+addBlock(pos.x,pos.y,pos.z,mats.wood,'tree');
+inventory.wood--;
+}
+if(selectedSlot===3 && inventory.stone>0){
+addBlock(pos.x,pos.y,pos.z,mats.stone,'stone');
+inventory.stone--;
+}
+updateUI();
+}
+});
+
+function updateUI(){
+document.getElementById('wisdom-val').innerText=inventory.wisdom;
+
+if(questStage===1 && inventory.wood>=5){
+document.getElementById('task').innerText="Gather 5 Stone for an altar.";
+inventory.wisdom+=50;
+questStage=2;
+}
+else if(questStage===2 && inventory.stone>=5){
+document.getElementById('task').innerText="Build a stone altar.";
+inventory.wisdom+=100;
+questStage=3;
+}
+else if(questStage===3 && inventory.stone===0){
+document.getElementById('task').innerText="The heavens respond...";
+inventory.wisdom+=200;
+questStage=4;
+
+const flash=new THREE.AmbientLight(0xffffff,5);
+scene.add(flash);
+setTimeout(()=>scene.remove(flash),200);
+}
+}
+
+window.addEventListener('keydown',(e)=>{
+if(e.key==='1') setSlot(1);
+if(e.key==='2') setSlot(2);
+if(e.key==='3') setSlot(3);
+});
+
+function setSlot(n){
+selectedSlot=n;
+document.querySelectorAll('.slot').forEach(s=>s.classList.remove('active'));
+document.getElementById('slot'+n).classList.add('active');
+}
+
+let moveF=false,moveB=false,moveL=false,moveR=false;
+let canJump=true;
+const velocity=new THREE.Vector3();
+let prevTime=performance.now();
+
+document.addEventListener('keydown',(e)=>{
+if(e.code==='KeyW') moveF=true;
+if(e.code==='KeyS') moveB=true;
+if(e.code==='KeyA') moveL=true;
+if(e.code==='KeyD') moveR=true;
+if(e.code==='Space' && canJump){
+velocity.y+=8;
+canJump=false;
+}
+});
+
+document.addEventListener('keyup',(e)=>{
+if(e.code==='KeyW') moveF=false;
+if(e.code==='KeyS') moveB=false;
+if(e.code==='KeyA') moveL=false;
+if(e.code==='KeyD') moveR=false;
+});
+
+function animate(){
+requestAnimationFrame(animate);
+const time=performance.now();
+const delta=(time-prevTime)/1000;
+
+if(controls.isLocked){
+velocity.x-=velocity.x*10*delta;
+velocity.z-=velocity.z*10*delta;
+velocity.y-=20*delta;
+
+if(moveF) velocity.z-=100*delta;
+if(moveB) velocity.z+=100*delta;
+if(moveL) velocity.x-=100*delta;
+if(moveR) velocity.x+=100*delta;
+
+controls.moveRight(-velocity.x*delta);
+controls.moveForward(-velocity.z*delta);
+
+camera.position.y+=velocity.y*delta;
+if(camera.position.y<3){
+velocity.y=0;
+camera.position.y=3;
+canJump=true;
+}
+}
+
+dayTime+=0.0003;
+const angle=dayTime*Math.PI*2;
+sun.position.set(Math.cos(angle)*40,Math.sin(angle)*40,20);
+
+const height=Math.max(0,Math.sin(angle));
+sun.intensity=0.3+height*1.2;
+ambientLight.intensity=0.2+height*0.5;
+
+const sky=new THREE.Color().setHSL(0.6-height*0.1,0.7,0.2+height*0.4);
+scene.background=sky;
+scene.fog=new THREE.Fog(sky,10,80);
+
+prevTime=time;
+renderer.render(scene,camera);
+}
+
+animate();
+window.addEventListener('contextmenu',e=>e.preventDefault());
 </script>
 </body>
 </html>
