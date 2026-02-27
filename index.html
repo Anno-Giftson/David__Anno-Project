@@ -144,19 +144,40 @@
     sun.castShadow = true;
     scene.add(sun);
 
-    // --- WORLD GEN ---
-    const boxGeo = new THREE.BoxGeometry(1, 1, 1);
-    
-    function addBlock(x, y, z, mat, type) {
-        const mesh = new THREE.Mesh(boxGeo, mat);
-        mesh.position.set(x, y, z);
-        mesh.userData = { type };
-        mesh.receiveShadow = true;
-        mesh.castShadow = true;
-        scene.add(mesh);
-        blocks.push(mesh);
-        return mesh;
+   // --- WORLD GEN WITH HEIGHT ---
+function getHeight(x, z) {
+    return Math.floor(
+        Math.sin(x * 0.2) * 2 +
+        Math.cos(z * 0.2) * 2 +
+        Math.random() * 1
+    );
+}
+
+for (let x = -30; x < 30; x++) {
+    for (let z = -30; z < 30; z++) {
+        const height = getHeight(x, z);
+
+        for (let y = 0; y <= height; y++) {
+            const isTop = y === height;
+            const mat = isTop
+                ? (Math.random() > 0.7 ? mats.sand : mats.grass)
+                : mats.stone;
+
+            const type = isTop
+                ? (mat === mats.sand ? 'sand' : 'grass')
+                : 'stone';
+
+            addBlock(x, y, z, mat, type);
+        }
+
+        // Trees spawn only on grass tops
+        if (Math.random() > 0.97) {
+            for (let h = height + 1; h <= height + 3; h++)
+                addBlock(x, h, z, mats.wood, 'tree');
+            addBlock(x, height + 4, z, mats.leaf, 'leaf');
+        }
     }
+}
 
     // Build the Sinai Wilderness
     for(let x = -20; x < 20; x++) {
@@ -230,12 +251,7 @@
         document.getElementById('slot' + n).classList.add('active');
     }
 
-    function updateUI() {
-        document.getElementById('wisdom-val').innerText = inventory.wisdom;
-        if (inventory.wood >= 5) document.getElementById('task').innerText = "Quest Complete! Now build an altar of 5 stones.";
-        if (inventory.stone >= 5) document.getElementById('task').innerText = "Use Stone (Key 3) to build a monument to the heavens.";
-    }
-
+    
     // --- GAME LOOP ---
     let moveF = false, moveB = false, moveL = false, moveR = false;
     document.addEventListener('keydown', (e) => {
@@ -268,10 +284,28 @@
             controls.moveForward(-velocity.z * delta);
         }
 
-        // Day/Night Cycle Logic
-        dayTime += 0.0005;
-        const sunAngle = dayTime * Math.PI * 2;
-        sun.position.set(Math.cos(sunAngle) * 20, Math.sin(sunAngle) * 20, 10);
+       dayTime += 0.0003;
+const sunAngle = dayTime * Math.PI * 2;
+
+sun.position.set(
+    Math.cos(sunAngle) * 40,
+    Math.sin(sunAngle) * 40,
+    20
+);
+
+const heightFactor = Math.max(0, Math.sin(sunAngle));
+
+sun.intensity = 0.3 + heightFactor * 1.2;
+ambientLight.intensity = 0.2 + heightFactor * 0.5;
+
+const skyColor = new THREE.Color().setHSL(
+    0.6 - heightFactor * 0.1,
+    0.7,
+    0.2 + heightFactor * 0.4
+);
+
+scene.background = skyColor;
+scene.fog = new THREE.Fog(skyColor, 10, 80);
         
         // Change sky color based on sun height
         const skyCol = new THREE.Color().setHSL(0.6, 0.5, Math.max(0.1, Math.sin(sunAngle)));
@@ -282,6 +316,31 @@
         renderer.render(scene, camera);
     }
     animate();
+
+    function updateUI() {
+    document.getElementById('wisdom-val').innerText = inventory.wisdom;
+
+    if (questStage === 1 && inventory.wood >= 5) {
+        document.getElementById('task').innerText =
+            "Quest Complete! Gather 5 Stone for an altar.";
+        questStage = 2;
+        inventory.wisdom += 50;
+    }
+
+    else if (questStage === 2 && inventory.stone >= 5) {
+        document.getElementById('task').innerText =
+            "Build an altar of 5 stones to honor the heavens.";
+        questStage = 3;
+        inventory.wisdom += 100;
+    }
+
+    else if (questStage === 3 && inventory.stone === 0) {
+        document.getElementById('task').innerText =
+            "The altar stands. A new journey awaits...";
+        questStage = 4;
+        inventory.wisdom += 200;
+    }
+}
 
     // Prevent context menu on right click
     window.addEventListener('contextmenu', e => e.preventDefault());
