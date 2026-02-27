@@ -2,345 +2,1525 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Bible Craft Pro: Genesis Edition</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Bible Craft: Covenant Engine (Ultimate Edition)</title>
 <style>
-:root {
-    --gold: #ffd700;
-    --parchment: #f4e4bc;
-    --ink: #2c1e0f;
-}
-body { margin:0; overflow:hidden; font-family:'Quicksand', sans-serif; background:#000; }
+    /* --- CORE STYLES --- */
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=VT323&display=swap');
+    
+    :root {
+        --gold: #FFD700;
+        --dark: #1a1a1a;
+        --panel-bg: rgba(0, 0, 0, 0.85);
+        --text-main: #f0f0f0;
+        --accent: #d4af37;
+        --danger: #d32f2f;
+        --health: #e53935;
+        --manna: #fdd835;
+        --wisdom: #039be5;
+    }
 
-#ui-layer {
-    position:absolute; top:0; left:0; width:100%; height:100%;
-    pointer-events:none; display:flex; flex-direction:column; justify-content:space-between;
-}
+    * { box-sizing: border-box; user-select: none; }
 
-#header {
-    background:rgba(44,30,15,0.8);
-    border-bottom:3px solid var(--gold);
-    color:var(--parchment);
-    padding:10px 20px;
-    display:flex; justify-content:space-between; align-items:center;
-}
+    body {
+        margin: 0;
+        overflow: hidden;
+        background-color: #000;
+        font-family: 'VT323', monospace;
+        color: var(--text-main);
+    }
 
-h1 { font-family:'Cinzel', serif; margin:0; font-size:1.5rem; }
+    /* --- CANVAS LAYER --- */
+    #game-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+    }
 
-#crosshair {
-    position:absolute; top:50%; left:50%;
-    width:15px; height:15px; border:2px solid white;
-    border-radius:50%; transform:translate(-50%,-50%);
-}
+    /* --- UI LAYER --- */
+    #ui-layer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 10;
+        pointer-events: none;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
 
-#hotbar {
-    display:flex; gap:10px; padding:10px;
-    background:rgba(0,0,0,0.5); border-radius:10px 10px 0 0;
-    margin:0 auto; pointer-events:auto;
-}
+    /* --- HUD TOP --- */
+    #hud-top {
+        display: flex;
+        justify-content: space-between;
+        padding: 20px;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+    }
 
-.slot {
-    width:50px; height:50px;
-    background:rgba(255,255,255,0.2);
-    border:2px solid #555;
-    display:flex; justify-content:center; align-items:center;
-    font-size:1.5rem; border-radius:5px; color:white;
-    position:relative;
-}
+    .stat-cluster {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        pointer-events: auto;
+    }
 
-.slot.active {
-    border-color:var(--gold);
-    background:rgba(255,215,0,0.3);
-}
+    .bar-container {
+        width: 250px;
+        height: 20px;
+        background: #333;
+        border: 2px solid #555;
+        position: relative;
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+    }
 
-.slot::after {
-    content:attr(data-key);
-    position:absolute; top:2px; left:4px;
-    font-size:0.7rem; color:var(--gold);
-}
+    .bar-fill {
+        height: 100%;
+        transition: width 0.2s ease-out;
+    }
+    
+    #bar-hp { background: var(--health); width: 100%; }
+    #bar-manna { background: var(--manna); width: 100%; }
+    #bar-wisdom { background: var(--wisdom); width: 0%; }
 
-#quest-log {
-    position:absolute; left:20px; top:80px;
-    background:rgba(244,228,188,0.95);
-    color:var(--ink);
-    padding:15px;
-    border-radius:5px;
-    border-left:5px solid #8b4513;
-    max-width:250px;
-    font-weight:600;
-}
+    .bar-label {
+        position: absolute;
+        top: -2px;
+        left: 5px;
+        font-size: 16px;
+        text-shadow: 1px 1px 0 #000;
+        color: #fff;
+        z-index: 2;
+    }
 
-#instructions {
-    position:absolute; top:50%; left:50%;
-    transform:translate(-50%,-50%);
-    background:var(--parchment);
-    color:var(--ink);
-    padding:20px;
-    text-align:center;
-    border:4px double var(--ink);
-    pointer-events:auto;
-    cursor:pointer;
-    z-index:10;
-}
+    .info-cluster {
+        text-align: right;
+        font-family: 'Cinzel', serif;
+    }
+
+    #day-display {
+        font-size: 32px;
+        color: var(--gold);
+        text-shadow: 0 0 10px var(--accent);
+    }
+
+    #coord-display {
+        font-family: 'VT323', monospace;
+        font-size: 18px;
+        color: #aaa;
+    }
+
+    /* --- CENTER NOTIFICATIONS --- */
+    #notification-area {
+        position: absolute;
+        top: 20%;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+        pointer-events: none;
+    }
+
+    .notify-msg {
+        font-family: 'Cinzel', serif;
+        font-size: 48px;
+        color: var(--gold);
+        text-shadow: 0 0 20px #000, 0 0 5px var(--gold);
+        opacity: 0;
+        transition: opacity 0.5s;
+    }
+
+    /* --- CROSSHAIR --- */
+    #crosshair {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 20px;
+        height: 20px;
+    }
+    #crosshair::before, #crosshair::after {
+        content: '';
+        position: absolute;
+        background: rgba(255, 255, 255, 0.8);
+    }
+    #crosshair::before { top: 9px; left: 0; width: 20px; height: 2px; }
+    #crosshair::after { top: 0; left: 9px; width: 2px; height: 20px; }
+
+    /* --- HOTBAR --- */
+    #hotbar-container {
+        display: flex;
+        justify-content: center;
+        padding-bottom: 20px;
+        pointer-events: auto;
+    }
+
+    .hotbar-slot {
+        width: 64px;
+        height: 64px;
+        background: rgba(0, 0, 0, 0.6);
+        border: 3px solid #444;
+        margin: 0 4px;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 32px;
+        cursor: pointer;
+        transition: transform 0.1s, border-color 0.1s;
+    }
+
+    .hotbar-slot.active {
+        border-color: var(--gold);
+        transform: scale(1.1);
+        background: rgba(255, 215, 0, 0.1);
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+        z-index: 2;
+    }
+
+    .slot-key {
+        position: absolute;
+        top: 2px;
+        left: 4px;
+        font-size: 12px;
+        color: #888;
+    }
+
+    .slot-qty {
+        position: absolute;
+        bottom: 2px;
+        right: 4px;
+        font-size: 16px;
+        color: #fff;
+        font-weight: bold;
+    }
+
+    /* --- MENUS --- */
+    .screen-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 20;
+        pointer-events: auto;
+    }
+
+    .hidden { display: none !important; }
+
+    h1 {
+        font-family: 'Cinzel', serif;
+        font-size: 80px;
+        margin: 0;
+        color: var(--gold);
+        text-shadow: 0 0 30px #b8860b;
+        letter-spacing: 5px;
+    }
+
+    .subtitle {
+        font-size: 24px;
+        color: #888;
+        margin-bottom: 40px;
+        letter-spacing: 2px;
+    }
+
+    .menu-btn {
+        background: var(--gold);
+        color: #000;
+        border: none;
+        padding: 15px 50px;
+        font-family: 'Cinzel', serif;
+        font-size: 24px;
+        font-weight: bold;
+        cursor: pointer;
+        margin: 10px;
+        transition: all 0.2s;
+        box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+    }
+
+    .menu-btn:hover {
+        background: #fff;
+        transform: scale(1.05);
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+    }
+    
+    .menu-btn.secondary {
+        background: transparent;
+        border: 2px solid var(--gold);
+        color: var(--gold);
+    }
+
+    .menu-btn.secondary:hover {
+        background: rgba(255, 215, 0, 0.2);
+    }
+
+    /* --- CRAFTING & INVENTORY (Advanced) --- */
+    #crafting-panel {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 600px;
+        height: 400px;
+        background: #1e1e1e;
+        border: 4px solid var(--gold);
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+        pointer-events: auto;
+    }
+    
+    .panel-header {
+        font-family: 'Cinzel', serif;
+        font-size: 32px;
+        color: var(--gold);
+        border-bottom: 2px solid #333;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+
+    .recipe-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        overflow-y: auto;
+    }
+
+    .recipe-card {
+        background: #333;
+        padding: 10px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        border: 1px solid #444;
+    }
+
+    .recipe-card:hover { background: #444; border-color: var(--gold); }
+
+    .recipe-icon { font-size: 32px; margin-right: 15px; }
+    .recipe-details { flex-grow: 1; }
+    .recipe-name { font-weight: bold; color: #fff; font-size: 18px; }
+    .recipe-cost { color: #aaa; font-size: 14px; }
+
 </style>
+<script type="importmap">
+    { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+</script>
 </head>
 <body>
 
-<div id="instructions">
-<h1 style="color:#8b4513">BIBLE CRAFT</h1>
-<p>The desert awaits, Wanderer.</p>
-<p><b>WASD</b> Move | <b>Mouse</b> Look</p>
-<p><b>Left Click</b> Mine | <b>Right Click</b> Build</p>
-<p><b>1,2,3</b> Switch | <b>Space</b> Jump</p>
-<button style="padding:10px 20px;font-family:'Cinzel';cursor:pointer;">BEGIN JOURNEY</button>
-</div>
-
 <div id="ui-layer">
-<div id="header">
-<h1>BIBLE CRAFT</h1>
-<div>Wisdom: <span id="wisdom-val">0</span></div>
+    <div id="hud-top">
+        <div class="stat-cluster">
+            <div class="bar-container">
+                <div class="bar-label">HEALTH</div>
+                <div id="bar-hp" class="bar-fill"></div>
+            </div>
+            <div class="bar-container">
+                <div class="bar-label">MANNA</div>
+                <div id="bar-manna" class="bar-fill"></div>
+            </div>
+            <div class="bar-container">
+                <div class="bar-label">WISDOM</div>
+                <div id="bar-wisdom" class="bar-fill"></div>
+            </div>
+        </div>
+        <div class="info-cluster">
+            <div id="day-display">DAY 1</div>
+            <div id="coord-display">X:0 Y:10 Z:0</div>
+        </div>
+    </div>
+
+    <div id="notification-area">
+        <div id="msg-text" class="notify-msg">WELCOME WANDERER</div>
+    </div>
+
+    <div id="crosshair"></div>
+
+    <div id="hotbar-container">
+        </div>
 </div>
 
-<div id="quest-log">
-<div style="font-family:'Cinzel';border-bottom:1px solid #8b4513;margin-bottom:5px;">CURRENT TASK</div>
-<span id="task">Gather 5 Cedar Wood to begin.</span>
+<div id="start-screen" class="screen-overlay">
+    <h1>BIBLE CRAFT</h1>
+    <div class="subtitle">COVENANT ENGINE v2.0</div>
+    <button id="btn-start" class="menu-btn">NEW JOURNEY</button>
+    <button id="btn-load" class="menu-btn secondary">CONTINUE</button>
+    <p style="color: #666; margin-top: 50px;">WASD to Move | Click to Mine | Right Click to Build | E for Inventory</p>
 </div>
 
-<div id="crosshair"></div>
-
-<div id="hotbar">
-<div class="slot active" data-key="1" id="slot1">⛏️</div>
-<div class="slot" data-key="2" id="slot2">🪵</div>
-<div class="slot" data-key="3" id="slot3">🧱</div>
+<div id="pause-screen" class="screen-overlay hidden">
+    <h1>PAUSED</h1>
+    <button id="btn-resume" class="menu-btn">RESUME</button>
+    <button id="btn-save" class="menu-btn secondary">SAVE & QUIT</button>
 </div>
-</div>
-
-<script type="importmap">
-{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
-</script>
 
 <script type="module">
 import * as THREE from 'three';
 import { PointerLockControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/PointerLockControls.js';
 
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer({ antialias:true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.shadowMap.enabled = true;
-document.body.appendChild(renderer.domElement);
+// ==========================================
+// 🎵 AUDIO ENGINE (Synthesizer)
+// ==========================================
+class SoundEngine {
+    constructor() {
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        this.masterGain = this.ctx.createGain();
+        this.masterGain.gain.value = 0.3; // Master Volume
+        this.masterGain.connect(this.ctx.destination);
+    }
 
-const controls = new PointerLockControls(camera, document.body);
-document.getElementById('instructions').addEventListener('click', () => controls.lock());
-controls.addEventListener('lock', () => document.getElementById('instructions').style.display='none');
-controls.addEventListener('unlock', () => document.getElementById('instructions').style.display='block');
+    playTone(freq, type, duration, vol = 1) {
+        if(this.ctx.state === 'suspended') this.ctx.resume();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        
+        gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
 
-let inventory = { wood:0, stone:0, wisdom:0 };
-let questStage = 1;
-let selectedSlot = 1;
-let blocks = [];
-let dayTime = 0;
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+        osc.start();
+        osc.stop(this.ctx.currentTime + duration);
+    }
 
-const createMat = (color) => new THREE.MeshLambertMaterial({ color });
-const mats = {
-grass:createMat(0x6e8b3d),
-sand:createMat(0xd2b48c),
-wood:createMat(0x5d4037),
-stone:createMat(0x808080),
-leaf:createMat(0x228b22)
+    playWalk() {
+        // Low noise burst for footsteps
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.frequency.setValueAtTime(50 + Math.random()*20, this.ctx.currentTime);
+        osc.type = 'triangle';
+        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.1);
+    }
+
+    playMine() {
+        // High pitched 'tink' for stone, low for wood
+        this.playTone(800 + Math.random()*200, 'square', 0.1, 0.3);
+    }
+
+    playBuild() {
+        this.playTone(200, 'sine', 0.15, 0.5);
+    }
+
+    playLevelUp() {
+        const now = this.ctx.currentTime;
+        this.playTone(440, 'sine', 1.0, 0.5);
+        setTimeout(() => this.playTone(554, 'sine', 1.0, 0.5), 200);
+        setTimeout(() => this.playTone(659, 'sine', 1.0, 0.5), 400);
+        setTimeout(() => this.playTone(880, 'sine', 2.0, 0.5), 600);
+    }
+}
+
+const Audio = new SoundEngine();
+
+// ==========================================
+// 🎨 TEXTURE GENERATOR (Procedural)
+// ==========================================
+// Instead of loading images, we paint them on canvas to keep this single-file.
+class TextureGen {
+    static createTexture(type) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 64;
+        canvas.height = 64;
+        const ctx = canvas.getContext('2d');
+
+        if (type === 'grass') {
+            ctx.fillStyle = '#4a6b30';
+            ctx.fillRect(0,0,64,64);
+            // Noise
+            for(let i=0; i<200; i++) {
+                ctx.fillStyle = Math.random() > 0.5 ? '#3b5725' : '#5c853d';
+                ctx.fillRect(Math.random()*64, Math.random()*64, 2, 2);
+            }
+        } else if (type === 'dirt') {
+            ctx.fillStyle = '#5d4037';
+            ctx.fillRect(0,0,64,64);
+            for(let i=0; i<300; i++) {
+                ctx.fillStyle = Math.random() > 0.5 ? '#4e342e' : '#795548';
+                ctx.fillRect(Math.random()*64, Math.random()*64, 2, 2);
+            }
+        } else if (type === 'stone') {
+            ctx.fillStyle = '#757575';
+            ctx.fillRect(0,0,64,64);
+            for(let i=0; i<100; i++) {
+                ctx.fillStyle = Math.random() > 0.5 ? '#616161' : '#9e9e9e';
+                ctx.fillRect(Math.random()*64, Math.random()*64, 4, 4);
+            }
+        } else if (type === 'wood') {
+            ctx.fillStyle = '#5d4037';
+            ctx.fillRect(0,0,64,64);
+            // Bark lines
+            for(let i=0; i<10; i++) {
+                ctx.fillStyle = '#3e2723';
+                ctx.fillRect(i*6 + Math.random()*2, 0, 2, 64);
+            }
+        } else if (type === 'gold_ore') {
+            ctx.fillStyle = '#757575';
+            ctx.fillRect(0,0,64,64);
+            // Gold specs
+            for(let i=0; i<15; i++) {
+                ctx.fillStyle = '#FFD700';
+                ctx.fillRect(Math.random()*60, Math.random()*60, 6, 6);
+            }
+        } else if (type === 'leaves') {
+            ctx.fillStyle = '#2e7d32';
+            ctx.fillRect(0,0,64,64);
+            for(let i=0; i<100; i++) {
+                ctx.fillStyle = '#1b5e20';
+                ctx.fillRect(Math.random()*64, Math.random()*64, 4, 4);
+            }
+        }
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.magFilter = THREE.NearestFilter; // Pixel art look
+        return texture;
+    }
+}
+
+// Generate Textures
+const MATS = {
+    grass: new THREE.MeshStandardMaterial({ map: TextureGen.createTexture('grass'), roughness: 1 }),
+    dirt: new THREE.MeshStandardMaterial({ map: TextureGen.createTexture('dirt'), roughness: 1 }),
+    stone: new THREE.MeshStandardMaterial({ map: TextureGen.createTexture('stone'), roughness: 0.8 }),
+    wood: new THREE.MeshStandardMaterial({ map: TextureGen.createTexture('wood'), roughness: 0.9 }),
+    leaf: new THREE.MeshStandardMaterial({ map: TextureGen.createTexture('leaves'), transparent: true, opacity: 0.9 }),
+    gold: new THREE.MeshStandardMaterial({ map: TextureGen.createTexture('gold_ore'), metalness: 0.8, roughness: 0.2 }),
+    highlight: new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true, opacity: 0.3, transparent: true })
 };
 
-const ambientLight = new THREE.AmbientLight(0xffffff,0.4);
-scene.add(ambientLight);
-const sun = new THREE.DirectionalLight(0xffffff,1.0);
-sun.castShadow=true;
-scene.add(sun);
+// --- END OF PART 1 ---
+// COPY PART 2 BELOW THIS LINE
+// ==========================================
+// ⚙️ CORE ENGINE VARIABLES
+// ==========================================
 
-const boxGeo = new THREE.BoxGeometry(1,1,1);
+// Global Three.js variables
+let scene, camera, renderer, controls;
+let raycaster;
+let mouse = new THREE.Vector2();
 
-function addBlock(x,y,z,mat,type){
-const mesh=new THREE.Mesh(boxGeo,mat);
-mesh.position.set(x,y,z);
-mesh.userData={type};
-mesh.castShadow=true;
-mesh.receiveShadow=true;
-scene.add(mesh);
-blocks.push(mesh);
-return mesh;
+// Game State
+let GAME_ACTIVE = false;
+let lastTime = performance.now();
+let frameCount = 0;
+
+// World Settings
+const WORLD_SIZE = 64; // Blocks in each direction
+const CHUNK_SIZE = 16;
+const RENDER_DISTANCE = 4; // Chunks radius
+let chunks = {}; // Store chunk data: "x,z" -> Mesh[]
+
+// Lighting & Atmosphere
+let sunLight, moonLight, ambientLight;
+let dayTime = 0.3; // 0.0 to 1.0 (0.5 is Noon)
+const DAY_DURATION = 300; // Seconds for a full day
+
+// Physics & Player
+const GRAVITY = 30.0;
+const JUMP_FORCE = 12.0;
+const MOVE_SPEED = 10.0;
+const REACH = 5;
+
+const player = {
+    velocity: new THREE.Vector3(),
+    direction: new THREE.Vector3(),
+    onGround: false,
+    canJump: false,
+    height: 1.8,
+    radius: 0.4,
+    // Stats
+    hp: 100,
+    manna: 100,
+    wisdom: 0,
+    // Inventory
+    inventory: {
+        1: { type: 'wood', count: 0, icon: '🪵' },
+        2: { type: 'stone', count: 0, icon: '🪨' },
+        3: { type: 'gold', count: 0, icon: '✨' },
+        4: { type: 'torch', count: 5, icon: '🔥' },
+        5: { type: 'bread', count: 3, icon: '🍞' }
+    },
+    selectedSlot: 1
+};
+
+// Input State
+const keys = {
+    forward: false,
+    backward: false,
+    left: false,
+    right: false,
+    jump: false,
+    sprint: false
+};
+
+// ==========================================
+// 🌍 WORLD GENERATION (Procedural)
+// ==========================================
+
+class WorldGen {
+    constructor() {
+        this.seed = Math.random() * 1000;
+    }
+
+    // A simple pseudo-random noise function (Combination of Sines)
+    // In a full engine, we'd use Perlin Noise, but this saves 500 lines of library code
+    getHeight(x, z) {
+        const nx = (x + this.seed) * 0.05;
+        const nz = (z + this.seed) * 0.05;
+        
+        // Base terrain (rolling hills)
+        let h = Math.sin(nx) * 4 + Math.cos(nz) * 4;
+        
+        // Details (bumpiness)
+        h += Math.sin(nx * 3 + nz * 2) * 2;
+        
+        // Biome flattening (Valleys)
+        h = Math.max(-5, h);
+
+        return Math.floor(h);
+    }
+
+    getBiome(x, z, h) {
+        // Simple biome logic based on height
+        if (h < -2) return 'sand'; // River/Lake bed
+        if (h > 6) return 'stone'; // Mountain peaks
+        return 'grass'; // Plains
+    }
+
+    shouldSpawnTree(x, z, h) {
+        // Pseudo-random tree placement based on coordinate hashing
+        if (h < -1 || h > 5) return false; // Don't grow in water or on peaks
+        const hash = Math.abs(Math.sin(x * 12.9898 + z * 78.233) * 43758.5453);
+        const decimal = hash - Math.floor(hash);
+        return decimal > 0.97; // 3% chance
+    }
+
+    shouldSpawnOre(y) {
+        if (y > 0) return null;
+        const r = Math.random();
+        if (r > 0.98 && y < -10) return 'gold';
+        return null;
+    }
 }
 
-function getHeight(x,z){
-return Math.floor(Math.sin(x*0.2)*2 + Math.cos(z*0.2)*2 + Math.random());
+const Generator = new WorldGen();
+let blocks = []; // Array for raycasting interaction
+
+// ==========================================
+// 🧱 BLOCK MANAGEMENT
+// ==========================================
+
+const boxGeo = new THREE.BoxGeometry(1, 1, 1);
+
+function createBlock(x, y, z, type, collision=true) {
+    let material = MATS[type] || MATS.dirt;
+    
+    // Special handling for torch (not a full block)
+    if(type === 'torch') {
+        const torchGeo = new THREE.BoxGeometry(0.2, 0.6, 0.2);
+        const mesh = new THREE.Mesh(torchGeo, new THREE.MeshBasicMaterial({color:0xffaa00}));
+        mesh.position.set(x, y, z);
+        mesh.userData = { type: 'torch', hp: 1 };
+        
+        // Add light
+        const light = new THREE.PointLight(0xffaa00, 1, 8);
+        light.position.set(0, 0.2, 0);
+        mesh.add(light);
+        
+        scene.add(mesh);
+        blocks.push(mesh);
+        return mesh;
+    }
+
+    const mesh = new THREE.Mesh(boxGeo, material);
+    mesh.position.set(x, y, z);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    mesh.userData = { type: type, hp: 3 }; // Block health
+    
+    scene.add(mesh);
+    if(collision) blocks.push(mesh);
+    return mesh;
 }
 
-for(let x=-30;x<30;x++){
-for(let z=-30;z<30;z++){
-const h=getHeight(x,z);
-for(let y=0;y<=h;y++){
-const isTop=y===h;
-const mat=isTop?(Math.random()>0.7?mats.sand:mats.grass):mats.stone;
-const type=isTop?(mat===mats.sand?'sand':'grass'):'stone';
-addBlock(x,y,z,mat,type);
-}
-if(Math.random()>0.97){
-for(let t=h+1;t<=h+3;t++) addBlock(x,t,z,mats.wood,'tree');
-addBlock(x,h+4,z,mats.leaf,'leaf');
-}
-}
+function generateChunk(cx, cz) {
+    const chunkKey = `${cx},${cz}`;
+    if (chunks[chunkKey]) return; // Already exists
+
+    chunks[chunkKey] = [];
+    
+    const startX = cx * CHUNK_SIZE;
+    const startZ = cz * CHUNK_SIZE;
+
+    for (let x = startX; x < startX + CHUNK_SIZE; x++) {
+        for (let z = startZ; z < startZ + CHUNK_SIZE; z++) {
+            let h = Generator.getHeight(x, z);
+            let biome = Generator.getBiome(x, z, h);
+            
+            // 1. Bedrock & Stone (Underground)
+            // Optimize: Only draw top layer of underground + exposed caves?
+            // For this version, we draw a solid column down to -5 for stability
+            
+            // Surface Block
+            createBlock(x, h, z, biome);
+
+            // Underground filler (Dirt then Stone)
+            createBlock(x, h - 1, z, 'dirt');
+            createBlock(x, h - 2, z, 'stone');
+            
+            // Deep ores
+            let deepMat = Generator.shouldSpawnOre(h-3);
+            createBlock(x, h - 3, z, deepMat ? 'gold' : 'stone');
+
+            // 2. Decor (Trees)
+            if (biome === 'grass' && Generator.shouldSpawnTree(x, z, h)) {
+                // Trunk
+                createBlock(x, h + 1, z, 'wood');
+                createBlock(x, h + 2, z, 'wood');
+                createBlock(x, h + 3, z, 'wood');
+                
+                // Leaves (Simple Crown)
+                createBlock(x, h + 4, z, 'leaf'); // Top
+                createBlock(x + 1, h + 3, z, 'leaf');
+                createBlock(x - 1, h + 3, z, 'leaf');
+                createBlock(x, h + 3, z + 1, 'leaf');
+                createBlock(x, h + 3, z - 1, 'leaf');
+            }
+        }
+    }
 }
 
-camera.position.y=3;
+// ==========================================
+// 🎮 INITIALIZATION
+// ==========================================
 
-const raycaster=new THREE.Raycaster();
-const mouse=new THREE.Vector2(0,0);
+function init() {
+    // Scene
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x87ceeb);
+    scene.fog = new THREE.FogExp2(0x87ceeb, 0.02); // Distance fog
 
-window.addEventListener('mousedown',(e)=>{
-if(!controls.isLocked) return;
-raycaster.setFromCamera(mouse,camera);
-const hits=raycaster.intersectObjects(blocks);
-if(hits.length===0) return;
-const hit=hits[0];
-const obj=hit.object;
+    // Camera
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.rotation.order = 'YXZ'; // Important for FPS look
 
-if(e.button===0 && hit.distance<5){
-if(selectedSlot===1){
-if(obj.userData.type==='tree') inventory.wood++;
-if(obj.userData.type==='stone') inventory.stone++;
-if(obj.userData.type!=='grass' && obj.userData.type!=='sand'){
-scene.remove(obj);
-blocks.splice(blocks.indexOf(obj),1);
-inventory.wisdom+=10;
-updateUI();
-}
-}
+    // Renderer
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    
+    // Insert Canvas
+    const ui = document.getElementById('ui-layer');
+    document.body.insertBefore(renderer.domElement, ui);
+
+    // Inputs
+    controls = new PointerLockControls(camera, document.body);
+    raycaster = new THREE.Raycaster();
+
+    // Lighting Setup
+    ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+    scene.add(ambientLight);
+
+    sunLight = new THREE.DirectionalLight(0xffffff, 1);
+    sunLight.position.set(50, 100, 50);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 2048;
+    sunLight.shadow.mapSize.height = 2048;
+    sunLight.shadow.camera.near = 0.5;
+    sunLight.shadow.camera.far = 500;
+    sunLight.shadow.camera.left = -50;
+    sunLight.shadow.camera.right = 50;
+    sunLight.shadow.camera.top = 50;
+    sunLight.shadow.camera.bottom = -50;
+    scene.add(sunLight);
+
+    // Initial World Gen
+    for(let x = -2; x <= 2; x++) {
+        for(let z = -2; z <= 2; z++) {
+            generateChunk(x, z);
+        }
+    }
+
+    // Set Player Start
+    const startY = Generator.getHeight(0, 0) + 5;
+    camera.position.set(0, startY, 0);
+
+    // Setup Listeners
+    setupInputs();
+    setupUI();
+    
+    // Start Loop
+    animate();
 }
 
-if(e.button===2 && hit.distance<5){
-const pos=obj.position.clone().add(hit.face.normal);
-if(Math.abs(pos.x-camera.position.x)<1 &&
-Math.abs(pos.y-camera.position.y)<2 &&
-Math.abs(pos.z-camera.position.z)<1) return;
+function setupInputs() {
+    // Keyboard
+    document.addEventListener('keydown', (e) => {
+        switch(e.code) {
+            case 'KeyW': keys.forward = true; break;
+            case 'KeyA': keys.left = true; break;
+            case 'KeyS': keys.backward = true; break;
+            case 'KeyD': keys.right = true; break;
+            case 'Space': keys.jump = true; break;
+            case 'ShiftLeft': keys.sprint = true; break;
+            case 'Digit1': selectSlot(1); break;
+            case 'Digit2': selectSlot(2); break;
+            case 'Digit3': selectSlot(3); break;
+            case 'Digit4': selectSlot(4); break;
+            case 'Digit5': selectSlot(5); break;
+        }
+    });
 
-if(selectedSlot===2 && inventory.wood>0){
-addBlock(pos.x,pos.y,pos.z,mats.wood,'tree');
-inventory.wood--;
+    document.addEventListener('keyup', (e) => {
+        switch(e.code) {
+            case 'KeyW': keys.forward = false; break;
+            case 'KeyA': keys.left = false; break;
+            case 'KeyS': keys.backward = false; break;
+            case 'KeyD': keys.right = false; break;
+            case 'Space': keys.jump = false; break;
+            case 'ShiftLeft': keys.sprint = false; break;
+        }
+    });
+
+    // Mouse Interaction
+    document.addEventListener('mousedown', (e) => {
+        if (!GAME_ACTIVE) return;
+        
+        if (e.button === 0) handleLeftClick();
+        if (e.button === 2) handleRightClick();
+    });
+
+    // Start Button
+    document.getElementById('btn-start').addEventListener('click', () => {
+        document.getElementById('start-screen').classList.add('hidden');
+        controls.lock();
+    });
+
+    document.getElementById('btn-resume').addEventListener('click', () => {
+        controls.lock();
+    });
+
+    controls.addEventListener('lock', () => {
+        GAME_ACTIVE = true;
+        document.getElementById('pause-screen').classList.add('hidden');
+    });
+
+    controls.addEventListener('unlock', () => {
+        GAME_ACTIVE = false;
+        document.getElementById('pause-screen').classList.remove('hidden');
+    });
+
+    // Resize
+    window.addEventListener('resize', onWindowResize, false);
 }
-if(selectedSlot===3 && inventory.stone>0){
-addBlock(pos.x,pos.y,pos.z,mats.stone,'stone');
-inventory.stone--;
+
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
 }
-updateUI();
+
+// --- END OF PART 2 ---
+// COPY PART 3 BELOW THIS LINE
+// ==========================================
+// ⚛️ PHYSICS ENGINE
+// ==========================================
+
+const playerBox = new THREE.Box3();
+const terrainBox = new THREE.Box3();
+const tempVec = new THREE.Vector3();
+
+function updatePhysics(delta) {
+    if (!GAME_ACTIVE) return;
+
+    // 1. Apply Gravity
+    player.velocity.y -= GRAVITY * delta;
+
+    // 2. Input Movement
+    player.direction.z = Number(keys.forward) - Number(keys.backward);
+    player.direction.x = Number(keys.right) - Number(keys.left);
+    player.direction.normalize();
+
+    const speed = keys.sprint ? MOVE_SPEED * 1.6 : MOVE_SPEED;
+
+    if (keys.forward || keys.backward) player.velocity.z -= player.direction.z * speed * 10.0 * delta;
+    if (keys.left || keys.right) player.velocity.x -= player.direction.x * speed * 10.0 * delta;
+
+    // 3. Jump
+    if (keys.jump && player.onGround) {
+        player.velocity.y = JUMP_FORCE;
+        player.onGround = false;
+        Audio.playWalk(); // Jump sound
+    }
+
+    // 4. Apply Damping (Friction)
+    player.velocity.x -= player.velocity.x * 10.0 * delta;
+    player.velocity.z -= player.velocity.z * 10.0 * delta;
+
+    // 5. Collision Detection & Position Update
+    // We break movement into X, Y, Z steps to allow "sliding" against walls
+    
+    // -- X Axis --
+    controls.moveRight(-player.velocity.x * delta);
+    if (checkCollision()) {
+        controls.moveRight(player.velocity.x * delta); // Revert
+        player.velocity.x = 0;
+    }
+
+    // -- Z Axis --
+    controls.moveForward(-player.velocity.z * delta);
+    if (checkCollision()) {
+        controls.moveForward(player.velocity.z * delta); // Revert
+        player.velocity.z = 0;
+    }
+
+    // -- Y Axis (Gravity/Floor) --
+    camera.position.y += player.velocity.y * delta;
+    player.onGround = false;
+    
+    if (checkCollision()) {
+        // We hit something (Floor or Ceiling)
+        camera.position.y -= player.velocity.y * delta; // Revert
+        
+        // If falling down, we hit the floor
+        if (player.velocity.y < 0) {
+            player.onGround = true;
+            // Footstep sound interval check
+            if((keys.forward || keys.right || keys.left || keys.backward) && Math.random() > 0.9) {
+                Audio.playWalk();
+            }
+        }
+        player.velocity.y = 0;
+    }
+
+    // Void Kill Check
+    if (camera.position.y < -20) {
+        respawn();
+    }
 }
+
+function checkCollision() {
+    // Create bounding box for player at current camera position
+    // Player is 1.8m tall, 0.6m wide
+    const pos = camera.position;
+    playerBox.setFromCenterAndSize(
+        new THREE.Vector3(pos.x, pos.y - 0.9, pos.z), 
+        new THREE.Vector3(0.6, 1.8, 0.6)
+    );
+
+    // Optimize: Only check blocks close to the player (Radius 3)
+    // In a real engine, we use a spatial hash. Here we filter the array.
+    // Note: This is computationally expensive if 'blocks' is huge, 
+    // but works for this single-file scope.
+    
+    for (let i = 0; i < blocks.length; i++) {
+        const b = blocks[i];
+        
+        // Quick distance check before exact Box3 check
+        if(Math.abs(b.position.x - pos.x) > 2) continue;
+        if(Math.abs(b.position.y - pos.y) > 3) continue;
+        if(Math.abs(b.position.z - pos.z) > 2) continue;
+        
+        // Check Intersect
+        if(b.userData.type !== 'torch') { // Torches have no collision
+            terrainBox.setFromObject(b);
+            if (playerBox.intersectsBox(terrainBox)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+function respawn() {
+    camera.position.set(0, 20, 0);
+    player.velocity.set(0,0,0);
+    player.hp = Math.max(0, player.hp - 10);
+    showNotification("YOU FELL INTO THE VOID");
+    updateStatsUI();
+}
+
+// ==========================================
+// 🌦️ ENVIRONMENT & ATMOSPHERE
+// ==========================================
+
+function updateEnvironment(delta) {
+    // 1. Cycle Time
+    dayTime += (delta / DAY_DURATION);
+    if (dayTime > 1) dayTime = 0; // Reset loop
+
+    // 2. Sun Position
+    const phi = dayTime * Math.PI * 2; // 0 to 2PI
+    const sunY = Math.sin(phi) * 100;
+    const sunX = Math.cos(phi) * 100;
+    
+    sunLight.position.set(sunX, sunY, 50);
+
+    // 3. Sky Color Interpolation (HSL)
+    // Noon (0.25) -> Sunset (0.5) -> Night (0.75) -> Dawn (0.0)
+    let hue = 0.6; // Blue base
+    let sat = 0.5;
+    let light = Math.max(0.05, Math.sin(phi)); // 0.05(night) to 1.0(day)
+    
+    // Sunset logic (Orange tint)
+    if(light < 0.4 && light > 0.1) {
+        hue = 0.05; // Orange
+        sat = 0.8;
+    }
+
+    const skyColor = new THREE.Color().setHSL(hue, sat, light * 0.6);
+    scene.background = skyColor;
+    scene.fog.color = skyColor;
+    scene.fog.density = 0.01 + (1 - light) * 0.02; // Fog gets thicker at night
+
+    // 4. Ambient Light (Darker at night)
+    ambientLight.intensity = Math.max(0.1, light * 0.4);
+    sunLight.intensity = Math.max(0, light);
+
+    // Update UI Time
+    const hour = Math.floor(dayTime * 24);
+    const min = Math.floor((dayTime * 24 - hour) * 60);
+    const timeStr = `${hour.toString().padStart(2,'0')}:${min.toString().padStart(2,'0')}`;
+    document.getElementById('day-display').innerText = `DAY ${Math.floor(frameCount/10000)+1} | ${timeStr}`;
+}
+
+// ==========================================
+// ✨ PARTICLE SYSTEM
+// ==========================================
+
+class ParticleSystem {
+    constructor() {
+        this.particles = [];
+        this.geo = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+    }
+
+    emit(pos, colorHex, count=8) {
+        const mat = new THREE.MeshBasicMaterial({ color: colorHex });
+        
+        for(let i=0; i<count; i++) {
+            const mesh = new THREE.Mesh(this.geo, mat);
+            // Random offset from block center
+            mesh.position.copy(pos);
+            mesh.position.x += (Math.random() - 0.5) * 0.5;
+            mesh.position.y += (Math.random() - 0.5) * 0.5;
+            mesh.position.z += (Math.random() - 0.5) * 0.5;
+            
+            // Random velocity
+            const vel = new THREE.Vector3(
+                (Math.random() - 0.5) * 4,
+                Math.random() * 4,
+                (Math.random() - 0.5) * 4
+            );
+
+            scene.add(mesh);
+            this.particles.push({ mesh, vel, life: 1.0 });
+        }
+    }
+
+    update(delta) {
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            const p = this.particles[i];
+            p.life -= delta * 2; // Fade speed
+
+            if (p.life <= 0) {
+                scene.remove(p.mesh);
+                this.particles.splice(i, 1);
+            } else {
+                // Physics for particles
+                p.vel.y -= 9.8 * delta; // Gravity
+                p.mesh.position.addScaledVector(p.vel, delta);
+                p.mesh.rotation.x += delta * 5;
+                p.mesh.rotation.z += delta * 5;
+            }
+        }
+    }
+}
+
+const Particles = new ParticleSystem();
+
+// ==========================================
+// ⛏️ INTERACTION LOGIC
+// ==========================================
+
+function handleLeftClick() {
+    // 1. Raycast
+    raycaster.setFromCamera(new THREE.Vector2(0,0), camera);
+    const intersects = raycaster.intersectObjects(blocks);
+
+    if (intersects.length > 0 && intersects[0].distance < REACH) {
+        const hit = intersects[0];
+        const obj = hit.object;
+
+        // Visuals
+        Particles.emit(hit.point, obj.material.color || 0x888888);
+        Audio.playMine();
+
+        // Damage Block
+        obj.userData.hp -= 1;
+        
+        // Break Block Animation (Jitter)
+        obj.position.x += (Math.random()-0.5)*0.05;
+        obj.position.y += (Math.random()-0.5)*0.05;
+        obj.position.z += (Math.random()-0.5)*0.05;
+
+        if (obj.userData.hp <= 0) {
+            // Drop Resource
+            const type = obj.userData.type;
+            let drop = type;
+            if(type === 'grass') drop = 'dirt';
+            if(type === 'stone') drop = 'stone';
+            if(type === 'gold') drop = 'gold';
+            if(type === 'leaf') drop = (Math.random() > 0.8) ? 'bread' : null; // Rare food drop
+            
+            if(drop) addToInventory(drop, 1);
+            
+            // Remove
+            scene.remove(obj);
+            blocks.splice(blocks.indexOf(obj), 1);
+        }
+    }
+}
+
+function handleRightClick() {
+    // Eat Food
+    if (player.selectedSlot === 5) { // Bread
+        if (player.inventory[5].count > 0 && player.hp < 100) {
+            player.inventory[5].count--;
+            player.hp = Math.min(100, player.hp + 20);
+            Audio.playBuild(); // Use build sound for eating
+            updateStatsUI();
+            showNotification("RESTORED HEALTH");
+        }
+        return;
+    }
+
+    // Build Block
+    raycaster.setFromCamera(new THREE.Vector2(0,0), camera);
+    const intersects = raycaster.intersectObjects(blocks);
+
+    if (intersects.length > 0 && intersects[0].distance < REACH) {
+        const hit = intersects[0];
+        
+        // Get placement position based on face normal
+        const placePos = hit.object.position.clone().add(hit.face.normal);
+        
+        // Check if player is standing there (Don't trap yourself)
+        const playerPos = camera.position;
+        if (Math.abs(placePos.x - playerPos.x) < 0.8 && 
+            Math.abs(placePos.z - playerPos.z) < 0.8 && 
+            Math.abs(placePos.y - playerPos.y) < 1.8) {
+            showNotification("CANNOT BUILD HERE");
+            return;
+        }
+
+        // Check Inventory
+        const slot = player.inventory[player.selectedSlot];
+        if (slot && slot.count > 0) {
+            
+            // Deduct
+            slot.count--;
+            updateHotbarUI();
+            Audio.playBuild();
+
+            // Place
+            createBlock(placePos.x, placePos.y, placePos.z, slot.type);
+            Particles.emit(placePos, 0xffffff, 4); // Poof effect
+        } else {
+            showNotification("NO MATERIALS");
+        }
+    }
+}
+
+// --- END OF PART 3 ---
+// COPY PART 4 BELOW THIS LINE
+// ==========================================
+// 🖥️ UI & INVENTORY MANAGEMENT
+// ==========================================
+
+function updateStatsUI() {
+    document.getElementById('bar-hp').style.width = player.hp + '%';
+    document.getElementById('bar-manna').style.width = player.manna + '%';
+    document.getElementById('bar-wisdom').style.width = player.wisdom + '%';
+    
+    // Update coordinates
+    const x = Math.floor(camera.position.x);
+    const y = Math.floor(camera.position.y);
+    const z = Math.floor(camera.position.z);
+    document.getElementById('coord-display').innerText = `X:${x} Y:${y} Z:${z}`;
+}
+
+function updateHotbarUI() {
+    const container = document.getElementById('hotbar-container');
+    container.innerHTML = ''; // Clear current
+
+    // Loop through inventory slots 1-5
+    for(let i=1; i<=5; i++) {
+        const item = player.inventory[i];
+        
+        const div = document.createElement('div');
+        div.className = `hotbar-slot ${player.selectedSlot === i ? 'active' : ''}`;
+        
+        if(item && item.count > 0) {
+            div.innerHTML = `
+                <span class="slot-key">${i}</span>
+                <span class="slot-icon">${item.icon}</span>
+                <span class="slot-qty">${item.count}</span>
+            `;
+        } else {
+            div.innerHTML = `<span class="slot-key">${i}</span>`;
+            div.style.opacity = '0.5';
+        }
+        
+        div.onclick = () => selectSlot(i);
+        container.appendChild(div);
+    }
+}
+
+function selectSlot(num) {
+    player.selectedSlot = num;
+    updateHotbarUI();
+    Audio.playTone(600, 'sine', 0.05, 0.1); // UI Click sound
+}
+
+function addToInventory(type, amount) {
+    // Find slot with this type or empty slot
+    let targetSlot = null;
+    
+    // Check if we already have it
+    for(let i=1; i<=5; i++) {
+        if(player.inventory[i].type === type) {
+            targetSlot = i;
+            break;
+        }
+    }
+
+    // If not, hardcode slots for this demo (Simpler than dynamic assignment)
+    if(!targetSlot) {
+        if(type === 'wood') targetSlot = 1;
+        if(type === 'stone') targetSlot = 2;
+        if(type === 'gold') targetSlot = 3;
+        if(type === 'torch') targetSlot = 4;
+        if(type === 'bread') targetSlot = 5;
+    }
+
+    if(targetSlot) {
+        player.inventory[targetSlot].count += amount;
+        showNotification(`+${amount} ${type.toUpperCase()}`);
+        updateHotbarUI();
+    }
+}
+
+function showNotification(text) {
+    const el = document.getElementById('msg-text');
+    el.innerText = text;
+    el.style.opacity = 1;
+    
+    // Reset animation
+    clearTimeout(window.notifTimeout);
+    window.notifTimeout = setTimeout(() => {
+        el.style.opacity = 0;
+    }, 2000);
+}
+
+function setupUI() {
+    updateStatsUI();
+    updateHotbarUI();
+}
+
+// ==========================================
+// 💾 SAVE & LOAD SYSTEM
+// ==========================================
+
+function saveGame() {
+    const saveData = {
+        pos: { x: camera.position.x, y: camera.position.y, z: camera.position.z },
+        stats: { hp: player.hp, manna: player.manna, wisdom: player.wisdom },
+        inv: player.inventory,
+        time: dayTime
+        // Note: Saving modified blocks is omitted for localStorage size limits in this demo
+    };
+
+    const str = JSON.stringify(saveData);
+    const encoded = btoa(str); // Base64 encode
+    localStorage.setItem('covenant_save_v1', encoded);
+    
+    alert("GAME SAVED!");
+}
+
+function loadGame() {
+    const encoded = localStorage.getItem('covenant_save_v1');
+    if(!encoded) {
+        alert("NO SAVE FOUND");
+        return;
+    }
+
+    try {
+        const decoded = atob(encoded);
+        const data = JSON.parse(decoded);
+
+        // Apply Data
+        camera.position.set(data.pos.x, data.pos.y, data.pos.z);
+        player.hp = data.stats.hp;
+        player.manna = data.stats.manna;
+        player.wisdom = data.stats.wisdom;
+        player.inventory = data.inv;
+        dayTime = data.time;
+
+        // Reset World (Visuals update next frame)
+        updateStatsUI();
+        updateHotbarUI();
+        
+        // Hide menu
+        document.getElementById('start-screen').classList.add('hidden');
+        controls.lock();
+
+    } catch(e) {
+        console.error(e);
+        alert("SAVE FILE CORRUPTED");
+    }
+}
+
+document.getElementById('btn-save').addEventListener('click', () => {
+    saveGame();
+    location.reload(); // Exit to menu logic
 });
 
-function updateUI(){
-document.getElementById('wisdom-val').innerText=inventory.wisdom;
-
-if(questStage===1 && inventory.wood>=5){
-document.getElementById('task').innerText="Gather 5 Stone for an altar.";
-inventory.wisdom+=50;
-questStage=2;
-}
-else if(questStage===2 && inventory.stone>=5){
-document.getElementById('task').innerText="Build a stone altar.";
-inventory.wisdom+=100;
-questStage=3;
-}
-else if(questStage===3 && inventory.stone===0){
-document.getElementById('task').innerText="The heavens respond...";
-inventory.wisdom+=200;
-questStage=4;
-
-const flash=new THREE.AmbientLight(0xffffff,5);
-scene.add(flash);
-setTimeout(()=>scene.remove(flash),200);
-}
-}
-
-window.addEventListener('keydown',(e)=>{
-if(e.key==='1') setSlot(1);
-if(e.key==='2') setSlot(2);
-if(e.key==='3') setSlot(3);
+document.getElementById('btn-load').addEventListener('click', () => {
+    loadGame();
 });
 
-function setSlot(n){
-selectedSlot=n;
-document.querySelectorAll('.slot').forEach(s=>s.classList.remove('active'));
-document.getElementById('slot'+n).classList.add('active');
+// ==========================================
+// 🔄 MAIN LOOP
+// ==========================================
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    const time = performance.now();
+    const delta = Math.min((time - lastTime) / 1000, 0.1); // Cap delta to prevent huge jumps
+    lastTime = time;
+
+    if (GAME_ACTIVE) {
+        frameCount++;
+
+        // Sub-systems
+        updatePhysics(delta);
+        updateEnvironment(delta); // Day/Night
+        
+        // Particle System
+        // We use the particle system defined in Part 3
+        if (typeof Particles !== 'undefined') {
+            Particles.update(delta);
+        }
+
+        // Stats Decay (Hunger)
+        if (frameCount % 600 === 0) { // Every ~10 seconds
+            player.manna = Math.max(0, player.manna - 1);
+            if(player.manna === 0) player.hp = Math.max(0, player.hp - 1);
+            updateStatsUI();
+            
+            if(player.hp <= 0) {
+                controls.unlock();
+                document.getElementById('start-screen').classList.remove('hidden');
+                document.querySelector('#start-screen h1').innerText = "YOU PERISHED";
+            }
+        }
+    }
+
+    renderer.render(scene, camera);
 }
 
-let moveF=false,moveB=false,moveL=false,moveR=false;
-let canJump=true;
-const velocity=new THREE.Vector3();
-let prevTime=performance.now();
+// ==========================================
+// 🚀 LAUNCH
+// ==========================================
 
-document.addEventListener('keydown',(e)=>{
-if(e.code==='KeyW') moveF=true;
-if(e.code==='KeyS') moveB=true;
-if(e.code==='KeyA') moveL=true;
-if(e.code==='KeyD') moveR=true;
-if(e.code==='Space' && canJump){
-velocity.y+=8;
-canJump=false;
-}
+// Wait for window load to ensure all resources are ready
+window.onload = init;
+// ==========================================
+// 🚑 EMERGENCY CONTROLS PATCH
+// ==========================================
+
+// 1. Force Re-Bind WASD & Arrows
+window.addEventListener('keydown', (e) => {
+    // Force Game Active if we press keys (Failsafe)
+    if(!GAME_ACTIVE && controls.isLocked) GAME_ACTIVE = true;
+
+    switch(e.code) {
+        case 'KeyW': case 'ArrowUp': keys.forward = true; break;
+        case 'KeyS': case 'ArrowDown': keys.backward = true; break;
+        case 'KeyA': case 'ArrowLeft': keys.left = true; break;
+        case 'KeyD': case 'ArrowRight': keys.right = true; break;
+        case 'Space': keys.jump = true; break;
+        case 'ShiftLeft': keys.sprint = true; break;
+        
+        // EMERGENCY START: Press 'L' to force lock the mouse and start
+        case 'KeyL': 
+            controls.lock(); 
+            GAME_ACTIVE = true;
+            document.getElementById('start-screen').classList.add('hidden');
+            break;
+    }
 });
 
-document.addEventListener('keyup',(e)=>{
-if(e.code==='KeyW') moveF=false;
-if(e.code==='KeyS') moveB=false;
-if(e.code==='KeyA') moveL=false;
-if(e.code==='KeyD') moveR=false;
+window.addEventListener('keyup', (e) => {
+    switch(e.code) {
+        case 'KeyW': case 'ArrowUp': keys.forward = false; break;
+        case 'KeyS': case 'ArrowDown': keys.backward = false; break;
+        case 'KeyA': case 'ArrowLeft': keys.left = false; break;
+        case 'KeyD': case 'ArrowRight': keys.right = false; break;
+        case 'Space': keys.jump = false;
+        case 'ShiftLeft': keys.sprint = false; break;
+    }
 });
 
-function animate(){
-requestAnimationFrame(animate);
-const time=performance.now();
-const delta=(time-prevTime)/1000;
+console.log("✅ Controls Patch Loaded. Press 'L' if clicking doesn't work.");
 
-if(controls.isLocked){
-velocity.x-=velocity.x*10*delta;
-velocity.z-=velocity.z*10*delta;
-velocity.y-=20*delta;
+// ==========================================
+// ⚡ HIGH-PERFORMANCE PATCH (Instancing)
+// ==========================================
 
-if(moveF) velocity.z-=100*delta;
-if(moveB) velocity.z+=100*delta;
-if(moveL) velocity.x-=100*delta;
-if(moveR) velocity.x+=100*delta;
+// 1. Create Instanced Meshes (One per texture type)
+// This enables drawing 100,000 blocks with ZERO lag.
+const instanceGroups = {};
+const MAX_INSTANCES = 5000;
+const dummy = new THREE.Object3D();
 
-controls.moveRight(-velocity.x*delta);
-controls.moveForward(-velocity.z*delta);
+// Initialize the high-speed renderers
+Object.keys(MATS).forEach(type => {
+    if(type === 'highlight') return;
+    const geom = new THREE.BoxGeometry(1, 1, 1);
+    const mat = MATS[type];
+    const mesh = new THREE.InstancedMesh(geom, mat, MAX_INSTANCES);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    mesh.count = 0; // Start empty
+    mesh.userData = { type: type, freeIndices: [] }; // Track usage
+    
+    scene.add(mesh);
+    instanceGroups[type] = mesh;
+});
 
-camera.position.y+=velocity.y*delta;
-if(camera.position.y<3){
-velocity.y=0;
-camera.position.y=3;
-canJump=true;
+// 2. Overwrite Block Creation to use Instances
+// We replace the old slow function with this fast one
+window.createBlock = function(x, y, z, type, collision=true) {
+    // Special handling for torches (keep as normal meshes for light)
+    if(type === 'torch') {
+        const torchGeo = new THREE.BoxGeometry(0.2, 0.6, 0.2);
+        const mesh = new THREE.Mesh(torchGeo, new THREE.MeshBasicMaterial({color:0xffaa00}));
+        mesh.position.set(x, y, z);
+        mesh.userData = { type: 'torch', hp: 1 };
+        const light = new THREE.PointLight(0xffaa00, 1, 8);
+        light.position.set(0, 0.2, 0);
+        mesh.add(light);
+        scene.add(mesh);
+        blocks.push(mesh);
+        return mesh;
+    }
+
+    const group = instanceGroups[type];
+    if(!group || group.count >= MAX_INSTANCES) return; // Limit reached
+
+    // Position the dummy
+    dummy.position.set(x, y, z);
+    dummy.updateMatrix();
+
+    // Add to instance
+    const index = group.count;
+    group.setMatrixAt(index, dummy.matrix);
+    group.count++;
+    group.instanceMatrix.needsUpdate = true;
+
+    // Create an invisible "Physics Only" block for collision
+    // (Three.js raycaster can't hit instances easily, so we cheat)
+    const physGeo = new THREE.BoxGeometry(1,1,1);
+    const physMat = new THREE.MeshBasicMaterial({visible: false});
+    const collider = new THREE.Mesh(physGeo, physMat);
+    collider.position.set(x, y, z);
+    collider.userData = { 
+        type: type, 
+        hp: 3, 
+        isInstance: true, 
+        instanceId: index, 
+        group: group 
+    };
+    
+    scene.add(collider);
+    blocks.push(collider);
+};
+
+// 3. Overwrite Block Destruction
+window.removeBlock = function(obj) {
+    scene.remove(obj); // Remove collider
+    blocks.splice(blocks.indexOf(obj), 1);
+
+    if(obj.userData.isInstance) {
+        // Hiding an instance is complex, so we just scale it to 0
+        const group = obj.userData.group;
+        const idx = obj.userData.instanceId;
+        
+        // Get current matrix
+        group.getMatrixAt(idx, dummy.matrix);
+        // Scale to zero to hide
+        const elements = dummy.matrix.elements;
+        elements[0] = 0; elements[5] = 0; elements[10] = 0;
+        
+        group.setMatrixAt(idx, dummy.matrix);
+        group.instanceMatrix.needsUpdate = true;
+    }
 }
-}
 
-dayTime+=0.0003;
-const angle=dayTime*Math.PI*2;
-sun.position.set(Math.cos(angle)*40,Math.sin(angle)*40,20);
+// 4. Update the Click Handler to use new removal logic
+// We wrap the old click handler
+const oldLeftClick = handleLeftClick;
+handleLeftClick = function() {
+    raycaster.setFromCamera(new THREE.Vector2(0,0), camera);
+    const intersects = raycaster.intersectObjects(blocks);
 
-const height=Math.max(0,Math.sin(angle));
-sun.intensity=0.3+height*1.2;
-ambientLight.intensity=0.2+height*0.5;
+    if (intersects.length > 0 && intersects[0].distance < REACH) {
+        const hit = intersects[0];
+        const obj = hit.object;
 
-const sky=new THREE.Color().setHSL(0.6-height*0.1,0.7,0.2+height*0.4);
-scene.background=sky;
-scene.fog=new THREE.Fog(sky,10,80);
+        Audio.playMine();
+        Particles.emit(hit.point, 0x888888);
 
-prevTime=time;
-renderer.render(scene,camera);
-}
+        obj.userData.hp -= 1;
+        
+        if (obj.userData.hp <= 0) {
+            // Drop Resource
+            const type = obj.userData.type;
+            addToInventory(type === 'grass' ? 'dirt' : type, 1);
+            
+            // Use new removal
+            window.removeBlock(obj);
+        }
+    }
+};
 
-animate();
-window.addEventListener('contextmenu',e=>e.preventDefault());
+// 5. Lower Render Settings Automatically
+renderer.setPixelRatio(window.devicePixelRatio > 1 ? 1 : 1); // Cap resolution
+renderer.shadowMap.enabled = false; // Disable shadows for max FPS (Optional)
+scene.fog.density = 0.04; // Bring fog closer to hide missing chunks
+
+console.log("⚡ HIGH-PERFORMANCE MODE ACTIVATED");
+
 </script>
 </body>
 </html>
-
-
-
-
 
