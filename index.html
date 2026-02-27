@@ -1465,33 +1465,39 @@ window.createBlock = function(x, y, z, type, collision=true) {
     blocks.push(collider);
 };
 
-// 3. Overwrite Block Destruction
+/* =====================================================
+   🧱 CLEAN INSTANCE REMOVAL PATCH
+===================================================== */
+
 window.removeBlock = function(obj) {
-    scene.remove(obj); // Remove collider
-    blocks.splice(blocks.indexOf(obj), 1);
 
     if(obj.userData.isInstance) {
-        // Hiding an instance is complex, so we just scale it to 0
+
         const group = obj.userData.group;
         const idx = obj.userData.instanceId;
-        
-        // Get current matrix
-        group.getMatrixAt(idx, dummy.matrix);
-        // Scale to zero to hide
-        const elements = dummy.matrix.elements;
-        elements[0] = 0; elements[5] = 0; elements[10] = 0;
-        
-        group.setMatrixAt(idx, dummy.matrix);
+
+        const matrix = new THREE.Matrix4();
+        matrix.makeScale(0,0,0); // Hide block properly
+        group.setMatrixAt(idx, matrix);
         group.instanceMatrix.needsUpdate = true;
     }
-}
 
+    worldGrid.delete(getGridKey(
+        obj.position.x,
+        obj.position.y,
+        obj.position.z
+    ));
+
+    scene.remove(obj);
+    blocks.splice(blocks.indexOf(obj), 1);
+};
 // 4. Update the Click Handler to use new removal logic
 // We wrap the old click handler
 const oldLeftClick = handleLeftClick;
 handleLeftClick = function() {
+    raycaster.far = REACH;
     raycaster.setFromCamera(new THREE.Vector2(0,0), camera);
-    const intersects = raycaster.intersectObjects(blocks);
+    const intersects = raycaster.intersectObjects(blocks, false);
 
     if (intersects.length > 0 && intersects[0].distance < REACH) {
         const hit = intersects[0];
@@ -1551,22 +1557,21 @@ window.removeBlock = function(obj) {
     worldGrid.delete(getGridKey(obj.position.x, obj.position.y, obj.position.z));
 };
 
-// 2. Grid-Based Collision Detection (Zero Lag)
-function checkGridCollision(posX, posY, posZ) {
-    // Player bounding box (0.6 width, 1.8 height)
-    const minX = Math.floor(posX - 0.3);
-    const maxX = Math.floor(posX + 0.3);
-    const minY = Math.floor(posY - 1.6); // Feet
-    const maxY = Math.floor(posY + 0.2); // Head
-    const minZ = Math.floor(posZ - 0.3);
-    const maxZ = Math.floor(posZ + 0.3);
+function checkGridCollision(px, py, pz) {
 
-    // Only check the exact grid cells the player's body occupies
-    for (let x = minX; x <= maxX; x++) {
-        for (let y = minY; y <= maxY; y++) {
-            for (let z = minZ; z <= maxZ; z++) {
-                if (worldGrid.has(`${x},${y},${z}`)) {
-                    return true; // Hit a block!
+    const minX = Math.floor(px - 0.3);
+    const maxX = Math.floor(px + 0.3);
+    const minY = Math.floor(py - 1.6);
+    const maxY = Math.floor(py + 0.1);
+    const minZ = Math.floor(pz - 0.3);
+    const maxZ = Math.floor(pz + 0.3);
+
+    for(let x = minX; x <= maxX; x++) {
+        for(let y = minY; y <= maxY; y++) {
+            for(let z = minZ; z <= maxZ; z++) {
+
+                if(worldGrid.has(`${x},${y},${z}`)) {
+                    return true;
                 }
             }
         }
@@ -1650,6 +1655,100 @@ blocks.forEach(b => {
 });
 
 console.log("💎 TRUE VOXEL PHYSICS LOADED: Grid math active, lag eliminated.");
+
+/* =====================================================
+   🔥 ULTRA SMOOTH MINECRAFT MOVEMENT PATCH
+===================================================== */
+
+const ACCELERATION = 45;
+const FRICTION = 14;
+const AIR_ACCELERATION = 18;
+const MAX_WALK_SPEED = 9;
+const MAX_SPRINT_SPEED = 15;
+
+window.updatePhysics = function(delta) {
+    if (!GAME_ACTIVE) return;
+
+    const pos = camera.position;
+
+    /* -------- GRAVITY -------- */
+    player.velocity.y -= GRAVITY * delta;
+
+    /* -------- INPUT -------- */
+    player.direction.set(0,0,0);
+    if(keys.forward) player.direction.z -= 1;
+    if(keys.backward) player.direction.z += 1;
+    if(keys.left) player.direction.x -= 1;
+    if(keys.right) player.direction.x += 1;
+    player.direction.normalize();
+
+    const maxSpeed = keys.sprint ? MAX_SPRINT_SPEED : MAX_WALK_SPEED;
+    const accel = player.onGround ? ACCELERATION : AIR_ACCELERATION;
+
+    /* -------- ACCELERATION -------- */
+    if(player.direction.length() > 0) {
+        player.velocity.x -= player.direction.x * accel * delta;
+        player.velocity.z -= player.direction.z * accel * delta;
+    }
+
+    /* -------- SPEED LIMIT -------- */
+    const horizontalSpeed = Math.sqrt(
+        player.velocity.x * player.velocity.x +
+        player.velocity.z * player.velocity.z
+    );
+
+    if(horizontalSpeed > maxSpeed) {
+        const ratio = maxSpeed / horizontalSpeed;
+        player.velocity.x *= ratio;
+        player.velocity.z *= ratio;
+    }
+
+    /* -------- FRICTION -------- */
+    if(player.onGround) {
+        player.velocity.x -= player.velocity.x * FRICTION * delta;
+        player.velocity.z -= player.velocity.z * FRICTION * delta;
+    }
+
+    /* -------- JUMP -------- */
+    if(keys.jump && player.onGround) {
+        player.velocity.y = JUMP_FORCE;
+        player.onGround = false;
+    }
+
+    /* -------- SEPARATE AXIS COLLISION -------- */
+
+    // X
+    pos.x += player.velocity.x * delta;
+    if(checkGridCollision(pos.x, pos.y, pos.z)) {
+        pos.x -= player.velocity.x * delta;
+        player.velocity.x = 0;
+    }
+
+    // Z
+    pos.z += player.velocity.z * delta;
+    if(checkGridCollision(pos.x, pos.y, pos.z)) {
+        pos.z -= player.velocity.z * delta;
+        player.velocity.z = 0;
+    }
+
+    // Y
+    pos.y += player.velocity.y * delta;
+    player.onGround = false;
+
+    if(checkGridCollision(pos.x, pos.y, pos.z)) {
+        pos.y -= player.velocity.y * delta;
+        if(player.velocity.y < 0) player.onGround = true;
+        player.velocity.y = 0;
+    }
+
+    // Void reset
+    if(pos.y < -30) {
+        pos.set(0, 25, 0);
+        player.velocity.set(0,0,0);
+    }
+};
+
+
 
 </script>
 </body>
