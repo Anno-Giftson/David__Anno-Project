@@ -1520,6 +1520,137 @@ scene.fog.density = 0.04; // Bring fog closer to hide missing chunks
 
 console.log("⚡ HIGH-PERFORMANCE MODE ACTIVATED");
 
+// ==========================================
+// 💎 TRUE VOXEL CORE OVERHAUL
+// ==========================================
+
+// 1. The World Grid (Ultra-fast block lookups)
+const worldGrid = new Map();
+
+function getGridKey(x, y, z) {
+    return `${Math.floor(x)},${Math.floor(y)},${Math.floor(z)}`;
+}
+
+// Intercept block creation to register in the grid
+const originalCreateBlock = window.createBlock || createBlock;
+window.createBlock = function(x, y, z, type, collision=true) {
+    originalCreateBlock(x, y, z, type, collision);
+    if (collision && type !== 'torch') {
+        worldGrid.set(getGridKey(x, y, z), true);
+    }
+};
+
+// Intercept block removal to unregister from the grid
+const originalRemoveBlock = window.removeBlock;
+window.removeBlock = function(obj) {
+    if(originalRemoveBlock) originalRemoveBlock(obj);
+    else {
+        scene.remove(obj);
+        blocks.splice(blocks.indexOf(obj), 1);
+    }
+    worldGrid.delete(getGridKey(obj.position.x, obj.position.y, obj.position.z));
+};
+
+// 2. Grid-Based Collision Detection (Zero Lag)
+function checkGridCollision(posX, posY, posZ) {
+    // Player bounding box (0.6 width, 1.8 height)
+    const minX = Math.floor(posX - 0.3);
+    const maxX = Math.floor(posX + 0.3);
+    const minY = Math.floor(posY - 1.6); // Feet
+    const maxY = Math.floor(posY + 0.2); // Head
+    const minZ = Math.floor(posZ - 0.3);
+    const maxZ = Math.floor(posZ + 0.3);
+
+    // Only check the exact grid cells the player's body occupies
+    for (let x = minX; x <= maxX; x++) {
+        for (let y = minY; y <= maxY; y++) {
+            for (let z = minZ; z <= maxZ; z++) {
+                if (worldGrid.has(`${x},${y},${z}`)) {
+                    return true; // Hit a block!
+                }
+            }
+        }
+    }
+    return false;
+}
+
+// 3. Smooth Sliding Physics
+// We overwrite the old updatePhysics function entirely
+window.updatePhysics = function(delta) {
+    if (!GAME_ACTIVE) return;
+
+    // Apply Gravity
+    player.velocity.y -= GRAVITY * delta;
+
+    // Input Movement
+    player.direction.z = Number(keys.forward) - Number(keys.backward);
+    player.direction.x = Number(keys.right) - Number(keys.left);
+    player.direction.normalize();
+
+    const speed = keys.sprint ? MOVE_SPEED * 1.5 : MOVE_SPEED;
+
+    if (keys.forward || keys.backward) player.velocity.z -= player.direction.z * speed * 15.0 * delta;
+    if (keys.left || keys.right) player.velocity.x -= player.direction.x * speed * 15.0 * delta;
+
+    // Apply Ground Friction
+    player.velocity.x -= player.velocity.x * 10.0 * delta;
+    player.velocity.z -= player.velocity.z * 10.0 * delta;
+
+    // Jump
+    if (keys.jump && player.onGround) {
+        player.velocity.y = JUMP_FORCE;
+        player.onGround = false;
+        Audio.playWalk();
+    }
+
+    // --- SEPARATE AXIS COLLISION RESOLUTION ---
+    // This allows you to slide smoothly along walls without getting stuck
+    
+    const pos = camera.position;
+
+    // X-Axis Movement
+    pos.x += player.velocity.x * delta;
+    if (checkGridCollision(pos.x, pos.y, pos.z)) {
+        pos.x -= player.velocity.x * delta; // Revert X
+        player.velocity.x = 0;
+    }
+
+    // Z-Axis Movement
+    pos.z += player.velocity.z * delta;
+    if (checkGridCollision(pos.x, pos.y, pos.z)) {
+        pos.z -= player.velocity.z * delta; // Revert Z
+        player.velocity.z = 0;
+    }
+
+    // Y-Axis Movement
+    pos.y += player.velocity.y * delta;
+    player.onGround = false;
+
+    if (checkGridCollision(pos.x, pos.y, pos.z)) {
+        pos.y -= player.velocity.y * delta; // Revert Y
+        
+        if (player.velocity.y < 0) {
+            player.onGround = true; // Landed on the floor
+            if((keys.forward || keys.right || keys.left || keys.backward) && Math.random() > 0.9) {
+                Audio.playWalk(); // Footsteps
+            }
+        }
+        player.velocity.y = 0;
+    }
+
+    // Void Kill
+    if (pos.y < -20) respawn();
+};
+
+// 4. Populate the initial grid from existing blocks
+blocks.forEach(b => {
+    if (b.userData.type !== 'torch') {
+        worldGrid.set(getGridKey(b.position.x, b.position.y, b.position.z), true);
+    }
+});
+
+console.log("💎 TRUE VOXEL PHYSICS LOADED: Grid math active, lag eliminated.");
+
 </script>
 </body>
 </html>
